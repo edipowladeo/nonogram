@@ -48,12 +48,12 @@ object GameImageParams {
 
 object DebugParams {
     /** Debug mode, if true, will show debug windows for each step of the OCR process **/
-    const val DEBUG_MODE = false
+    const val DEBUG_MODE = true
     const val DEBUG_BOUNDARIES = true
     const val FORCE_GLITCH = false
-    const val DEBUG_VERTICAL_BARS = true
+    const val DEBUG_VERTICAL_BARS = false
     const val DEBUG_HORIZONTAL_BARS = true
-    const val DEBUG_NUMERALS = true
+    const val DEBUG_NUMERALS = false
     const val DEBUG_NUMERAL_COMPARISONS = true
 
     /** Debug mode, if true, will show debug windows for each step of the OCR process **/

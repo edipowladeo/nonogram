@@ -26,16 +26,17 @@ fun Array<Bar>.removeOutliersFromArithmeticProgression(
 fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Double, debug: Boolean = false): Array<Bar> {
     if (this.size <= 2) return this // Not enough points to evaluate
 
-    val sorted = this.sortedBy { it.center }
-    val gaps = List(sorted.size) { i ->
+    val sortedBars = this.sortedBy { it.center }
+    val gaps = List(sortedBars.size) { i ->
         when (i) {
-            0 -> (sorted[1].center - sorted[0].center)
-            sorted.lastIndex -> (sorted[i].center - sorted[i - 1].center)
-            else -> (sorted[i + 1].center - sorted[i - 1].center) / 2.0
+            0 -> (sortedBars[1].center - sortedBars[0].center)
+            sortedBars.lastIndex -> (sortedBars[i].center - sortedBars[i - 1].center)
+            else -> (sortedBars[i + 1].center - sortedBars[i - 1].center) / 2.0
         }
     }
 
-    val modeGap = gaps.sorted().calculateMode(1.5)
+    val modeGap = gaps.calculateMode(1.5)
+
     val tolerance = modeGap * toleranceRatio
 
     // Compute absolute deviation from median
@@ -46,42 +47,61 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Do
     // Filter candidates beyond 10% deviation
     val outliers = deviations.filter { (_, dev) -> dev > tolerance }
 
-    if (outliers.isEmpty()) return sorted.toTypedArray()
+
+    if (debug) println("\tOutliers: $outliers")
+
+    if (outliers.isEmpty()) return sortedBars.toTypedArray()
+
+    val outlierToBeRemoved =  outliers.minBy {
+        val indexToRemove = it.first
+        val newBars = sortedBars.filterIndexed { i, _ -> i != indexToRemove }.toTypedArray()
+        val newGaps = List(newBars.size) { i ->
+            when (i) {
+                0 -> (newBars[1].center - newBars[0].center)
+                newBars.lastIndex -> (newBars[i].center - newBars[i - 1].center)
+                else -> (newBars[i + 1].center - newBars[i - 1].center) / 2.0
+            }
+        }
+        val newModeGap = newGaps.calculateMode(1.5)
+        val newDeviations = newGaps.mapIndexed { i, gap ->
+            val diff = gap-newModeGap
+            val deviation =  if (diff >0) diff else -diff*5.0
+            Pair(i, deviation)
+        }
+        val averageDeviation = newDeviations.map { it.second }.average()
+        if (debug) println("Removing index: $indexToRemove, new average deviation: $averageDeviation")
+         averageDeviation
+    }
+
+
+
+
 
     // Remove the one with greatest deviation
-    val indexToRemove = outliers.maxByOrNull { it.second }!!.first
+    val indexToRemove = outlierToBeRemoved.first
 
     if (debug){
         println("${this.size}\tGaps: $gaps")
         println("\rGaps Sorted: ${gaps.sorted()}")
         println("\tmedianGap: $modeGap, tolerance: $tolerance")
-        println("\tDeviations: $deviations")
+
         println("\tOutliers: $outliers")
         println("\tIndex to remove: $indexToRemove")
     }
 
-    return sorted.filterIndexed { i, _ -> i != indexToRemove }.toTypedArray()
+    return sortedBars.filterIndexed { i, _ -> i != indexToRemove }.toTypedArray()
 }
 
 
 fun List<Double>.calculateMode(k: Double): Double {
     if (this.isEmpty()) throw IllegalArgumentException("Array is empty")
 
-    val sortedList = this.sorted()
-    val n = this.size
-    val minPosition = this.first()
-    val maxPosition = this.last()
-    val baseSpacing = (maxPosition - minPosition) / n
-    val groupWidth = baseSpacing * k
+    val groupWidth = this[this.size*2/3] * 0.2 //todo arbitrary
 
-    // Equally spaced group centers between minPosition and maxPosition
-    val groupCenters = List(n) { i -> minPosition + i * baseSpacing + baseSpacing / 2 }
-
-    // Count how many points fall within the window of each group center
     val groupCounts = mutableMapOf<Double, Int>().withDefault { 0 }
 
     for (value in this) {
-        for (center in groupCenters) {
+        for (center in this) {
             val distance = kotlin.math.abs(value - center)
             if (distance <= groupWidth / 2) {
                 groupCounts[center] = groupCounts.getValue(center) + 1
@@ -89,12 +109,13 @@ fun List<Double>.calculateMode(k: Double): Double {
         }
     }
 
-    println("${this.size}\tValues: $sortedList")
-    println("\tGroup Centers: $groupCenters")
-    println("\tGroup Width: $groupWidth")
-    println("\tGroup Counts: $groupCounts")
-val maxKey = groupCounts.maxByOrNull { it.value }?.key
+  //  println("${this.size}\tValues: $sortedList")
+  //  println("\tminPosition: $minPosition, maxPosition: $maxPosition")
+  //  println("\tGroup Centers: $groupCenters")
+  //  println("\tGroup Width: $groupWidth")
+  //  println("\tGroup Counts: $groupCounts")
+    val maxKey = groupCounts.maxByOrNull { it.value }?.key
     ?: throw IllegalStateException("No group matched any value")
-    println("\tmode: $maxKey")
+   // println("\tmode: $maxKey")
     return maxKey
 }
