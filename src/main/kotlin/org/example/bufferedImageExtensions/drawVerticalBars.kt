@@ -1,5 +1,6 @@
 package org.example.bufferedImageExtensions
 
+import org.example.arithmetic.Bar
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 

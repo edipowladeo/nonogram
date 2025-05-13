@@ -1,15 +1,15 @@
 package org.example.ocr
 
-import org.example.DebugParams.DEBUG_MODE
+import org.example.DebugParams.DEBUG_MASTER
 import org.example.DebugParams.DEBUG_NUMERALS
 import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS
 import org.example.OcrParams
 import org.example.Window
+import org.example.arithmetic.Bar
 import org.example.bufferedImageExtensions.*
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
-import kotlin.math.roundToInt
 import kotlin.random.Random
 
 
@@ -22,11 +22,7 @@ class NumeralOCR {
 
         val originalImage: BufferedImage = ImageIO.read(file)
 
-        if (DEBUG_MODE && DEBUG_NUMERALS) {
-            Window(originalImage.transpose(), "original numeral: $digit", y = 50, x = digit * 120) //DEBUG
-            Window(originalImage.transpose().toVerticalBars(), "original numeral: $digit", y = 50, x = digit * 120) //DEBUG
-            Window(originalImage.transpose().toVerticalBars().toBlackAndWhite(OcrParams.MIN_DENSITY_THRESHOLD), "original numeral: $digit", y = 50, x = digit * 120) //DEBUG
-        }
+
         val numeralHeight =
             getNumberHeight(originalImage) ?: throw Exception("Failed to get numeral height for digit $digit")
 
@@ -35,7 +31,7 @@ class NumeralOCR {
         val numeralWithCenterOfMass = scaledNumeral.toBlackAndWhite(0.25).computeCenterOfMass() // todo check thresold, maybe use param
             ?: throw Exception("Failed to compute center of mass for numeral $digit")
 
-        if (DEBUG_MODE && DEBUG_NUMERALS) {
+        if (DEBUG_MASTER && DEBUG_NUMERALS) {
             Window(
                 numeralWithCenterOfMass.imageWithCrossHair()
                     .resize(scaleFactor = 200 / OcrParams.COMPARISON_IMAGE_HEIGHT),
@@ -44,6 +40,10 @@ class NumeralOCR {
                 x = digit * 120
             )
             Window(originalImage, "original numeral: $digit", y = 50, x = digit * 120) //DEBUG
+
+            Window(originalImage.transpose(), "original numeral: $digit", y = 50, x = digit * 120) //DEBUG
+            Window(originalImage.transpose().toVerticalBars(), "original numeral: $digit", y = 100, x = digit * 120) //DEBUG
+            Window(originalImage.transpose().toVerticalBars().toBlackAndWhite(OcrParams.MIN_DENSITY_THRESHOLD), "original numeral: $digit", y = 150, x = digit * 120) //DEBUG
         }
         numeralWithCenterOfMass
     }
@@ -74,14 +74,15 @@ class NumeralOCR {
             }
         }
 
-        if (DEBUG_MODE && DEBUG_NUMERAL_COMPARISONS) Window(
-            image.resize(10.0),
-            "OK! N: $bestDigit",
-            y = Random.nextInt(350, 700),
-            x = Random.nextInt(770, 1350),
-            monitorIndex = 0
-        ) //DEBUG
-        //println("interpretNumeral: $bestDigit, error: $bestError")
+        if (DEBUG_MASTER && DEBUG_NUMERAL_COMPARISONS){
+          val y = Random.nextInt(350, 700)
+           val  x = Random.nextInt(770, 1350)
+            val scale= 80.0 / image.height
+            Window(image.resize(scale), "OK! N: $bestDigit", x =x , y=y, monitorIndex = 0)
+            Window(croppedImage.resize(scale), "OK! N: $bestDigit", x =x , y=y+90, monitorIndex = 0)
+
+            //println("interpretNumeral: $bestDigit, error: $bestError")
+    }
         return bestDigit
     }
 

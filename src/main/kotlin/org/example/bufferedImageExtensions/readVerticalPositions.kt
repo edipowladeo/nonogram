@@ -1,12 +1,9 @@
 package org.example.bufferedImageExtensions
 
+import org.example.arithmetic.Bar
 import org.example.arithmetic.removeOutliersFromArithmeticProgression
 import java.awt.image.BufferedImage
 
-data class Bar(
-    val center: Double,
-    val width: Double
-)
 
 fun BufferedImage.readBarPositions(toleranceRatio: Double = 0.2): Array<Bar> {
     val width = this.width

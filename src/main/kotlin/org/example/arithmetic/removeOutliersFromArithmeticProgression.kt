@@ -1,7 +1,6 @@
 package org.example.arithmetic
 
 import org.example.Window
-import org.example.bufferedImageExtensions.Bar
 import org.example.bufferedImageExtensions.drawVerticalBars
 import org.example.bufferedImageExtensions.resize
 

@@ -7,16 +7,19 @@ import java.awt.image.BufferedImage
 
 class GameImage(
     val image: BufferedImage,
-    val verticalBars: DoubleArray, //todo should use array<bar> ?
-    val horizontalBars: DoubleArray
+    val verticalBarStarts: DoubleArray, //todo should use array<bar> ?
+    val horizontalBarStarts: DoubleArray,
+    val verticalBarEnds: DoubleArray,
+    val horizontalBarEnds: DoubleArray,
 ) {
     companion object {
         val ocr = NumeralOCR()
     }
 
     private val filteredImage = image.toGrayscale().toBlackAndWhite(0.5)
-    val width = verticalBars.size - 1
-    val height = horizontalBars.size - 1
+
+    val width = verticalBarStarts.size - 1
+    val height = horizontalBarStarts.size - 1
 
     fun isCellClue(x: Int, y: Int): Boolean {
         val cell = image.getGameCell(x, y)
@@ -32,34 +35,31 @@ class GameImage(
         return ratio > 0.5
     }
 
-    private val rowClues = verticalBars
-        .dropLast(1)
-        .withIndex()
-        .firstOrNull { (x, _) ->
-            isCellClue(x, 0)
-        }?.index ?: throw Exception("No index found for when scanning first row")
+    private val rowClues = (0 until width)
+        .firstOrNull { x -> isCellClue(x, 0) }
+        ?: throw Exception("No index found for when scanning first row")
 
-    private val columnClues = horizontalBars
-        .dropLast(1)
-        .withIndex()
-        .firstOrNull { (y, _) ->
-            isCellClue(0, y)
-        }?.index ?: throw Exception("No index found for when scanning first column")
+    private val columnClues = (0 until height)
+        .firstOrNull { y -> isCellClue(0, y) }
+        ?: throw Exception("No index found for when scanning first column")
 
     val columns = width - rowClues
     val rows = height - columnClues
 
     init {
         println("row clues: $rowClues, column clues: $columnClues")
-        //Window(filteredImage.resize(0.5), "Filtered Image", y = 0, x = 0)
+        require(verticalBarEnds.size == verticalBarStarts.size)
+        require(horizontalBarEnds.size == horizontalBarStarts.size)
+
+        Window(image, "GAME", x = 1200, y = 100, monitorIndex = 1)
     }
 
     fun BufferedImage.getGameCell(x: Int, y: Int, boundingBoxScale: Double = 1.0): BufferedImage {
 
-        val x1 = verticalBars[x].toInt() + GameImageParams.CROP_X_OFFSET
-        val x2 = verticalBars[x + 1].toInt() + GameImageParams.CROP_X_OFFSET
-        val y1 = horizontalBars[y].toInt() + GameImageParams.CROP_Y_OFFSET
-        val y2 = horizontalBars[y + 1].toInt() + GameImageParams.CROP_Y_OFFSET
+        val x1 = verticalBarEnds[x].toInt() + GameImageParams.CROP_X_OFFSET
+        val x2 = verticalBarStarts[x + 1].toInt() + GameImageParams.CROP_X_OFFSET
+        val y1 = horizontalBarEnds[y].toInt() + GameImageParams.CROP_Y_OFFSET
+        val y2 = horizontalBarStarts[y + 1].toInt() + GameImageParams.CROP_Y_OFFSET
 
         val xCenter = (x1 + x2) / 2
         val yCenter = (y1 + y2) / 2
