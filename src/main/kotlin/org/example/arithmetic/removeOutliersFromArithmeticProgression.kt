@@ -1,18 +1,29 @@
 package org.example.arithmetic
 
+import org.example.Window
 import org.example.bufferedImageExtensions.Bar
+import org.example.bufferedImageExtensions.drawVerticalBars
+import org.example.bufferedImageExtensions.resize
 
-fun Array<Bar>.removeOutliersFromArithmeticProgression(toleranceRatio:Double = 0.2): Array<Bar>{
-    val newArray = this.removeGreatestOutlierFromArithmeticProgression(toleranceRatio);
-
-    if (newArray.size < this.size){
-        return newArray.removeOutliersFromArithmeticProgression(toleranceRatio);
+fun Array<Bar>.removeOutliersFromArithmeticProgression(
+    toleranceRatio: Double = 0.2,
+    debug: Boolean = false
+): Array<Bar> {
+    val newArray = this.removeGreatestOutlierFromArithmeticProgression(toleranceRatio,debug);
+    if (debug) {
+        val proofBars =
+            drawVerticalBars(newArray, 3000).resize(height = 500)
+        Window(proofBars, "Debug Remove outliers: Size: ${this.size}", monitorIndex = 1)
+    }
+    if (newArray.size < this.size) {
+       if (debug) println("Removed outlier, new size: ${ newArray.size}")
+        return newArray.removeOutliersFromArithmeticProgression(toleranceRatio,debug);
     }
 
     return this
 }
 
-fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio:Double): Array<Bar> {
+fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Double, debug: Boolean = false): Array<Bar> {
     if (this.size <= 2) return this // Not enough points to evaluate
 
     val sorted = this.sortedBy { it.center }
@@ -24,12 +35,12 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio:Dou
         }
     }
 
-    val medianGap = gaps.sorted()[gaps.size / 2]
-    val tolerance = medianGap * toleranceRatio
+    val modeGap = gaps.sorted().calculateMode(1.5)
+    val tolerance = modeGap * toleranceRatio
 
     // Compute absolute deviation from median
     val deviations = gaps.mapIndexed { i, gap ->
-        Pair(i, kotlin.math.abs(gap - medianGap))
+        Pair(i, kotlin.math.abs(gap - modeGap))
     }
 
     // Filter candidates beyond 10% deviation
@@ -40,5 +51,50 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio:Dou
     // Remove the one with greatest deviation
     val indexToRemove = outliers.maxByOrNull { it.second }!!.first
 
+    if (debug){
+        println("${this.size}\tGaps: $gaps")
+        println("\rGaps Sorted: ${gaps.sorted()}")
+        println("\tmedianGap: $modeGap, tolerance: $tolerance")
+        println("\tDeviations: $deviations")
+        println("\tOutliers: $outliers")
+        println("\tIndex to remove: $indexToRemove")
+    }
+
     return sorted.filterIndexed { i, _ -> i != indexToRemove }.toTypedArray()
+}
+
+
+fun List<Double>.calculateMode(k: Double): Double {
+    if (this.isEmpty()) throw IllegalArgumentException("Array is empty")
+
+    val sortedList = this.sorted()
+    val n = this.size
+    val minPosition = this.first()
+    val maxPosition = this.last()
+    val baseSpacing = (maxPosition - minPosition) / n
+    val groupWidth = baseSpacing * k
+
+    // Equally spaced group centers between minPosition and maxPosition
+    val groupCenters = List(n) { i -> minPosition + i * baseSpacing + baseSpacing / 2 }
+
+    // Count how many points fall within the window of each group center
+    val groupCounts = mutableMapOf<Double, Int>().withDefault { 0 }
+
+    for (value in this) {
+        for (center in groupCenters) {
+            val distance = kotlin.math.abs(value - center)
+            if (distance <= groupWidth / 2) {
+                groupCounts[center] = groupCounts.getValue(center) + 1
+            }
+        }
+    }
+
+    println("${this.size}\tValues: $sortedList")
+    println("\tGroup Centers: $groupCenters")
+    println("\tGroup Width: $groupWidth")
+    println("\tGroup Counts: $groupCounts")
+val maxKey = groupCounts.maxByOrNull { it.value }?.key
+    ?: throw IllegalStateException("No group matched any value")
+    println("\tmode: $maxKey")
+    return maxKey
 }

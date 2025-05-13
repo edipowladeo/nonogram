@@ -3,7 +3,7 @@ package org.example.bufferedImageExtensions
 import java.awt.image.BufferedImage
 
 
-fun BufferedImage.toVerticalBars(): BufferedImage  = this.reduceVerticallyAverage().resize(height = this.height)
+fun BufferedImage.toVerticalBars(): BufferedImage = this.reduceVerticallyAverage().resize(height = this.height)
 
 fun BufferedImage.reduceVerticallyAverage(): BufferedImage { // todo create type to accept only BW images
     val width = this.width

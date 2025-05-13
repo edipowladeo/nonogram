@@ -39,10 +39,10 @@ fun BufferedImage.applyNegativeThreshold(threshold: Int): BufferedImage {
     return newImage
 }
 
-fun BufferedImage.toBlackAndWhite(brightnessThresold: Int): BufferedImage {
+fun BufferedImage.toBlackAndWhite(brightnessThreshold: Double): BufferedImage {
     val width = this.width
     val height = this.height
-
+    val brightnessThresholdInt = brightnessThreshold.coerceIn(0.0, 1.0) * 255
     // Create a new BufferedImage to hold the result
     val newImage = BufferedImage(width, height, this.type)
 
@@ -61,7 +61,7 @@ fun BufferedImage.toBlackAndWhite(brightnessThresold: Int): BufferedImage {
             val grayscale = (red + green + blue) / 3
 
             // Apply thresholding: if grayscale >= threshold, set to white, else black
-            val newColor = if (grayscale >= brightnessThresold) {
+            val newColor = if (grayscale >= brightnessThresholdInt) {
                 0xFFFFFF // White (RGB = 255, 255, 255)
             } else {
                 0x000000 // Black (RGB = 0, 0, 0)

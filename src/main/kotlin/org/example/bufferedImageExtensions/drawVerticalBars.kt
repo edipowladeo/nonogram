@@ -3,7 +3,12 @@ package org.example.bufferedImageExtensions
 import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
-fun drawVerticalBars(bars: Array<Bar>, imageWidth: Int, color:Int = 0x00000000, barWidth:Double = 5.0): BufferedImage {
+fun drawVerticalBars(
+    bars: Array<Bar>,
+    imageWidth: Int,
+    color: Int = 0x79000000, //todo fix issue where i cant use more than 79 for alpha
+    barWidth: Double = 5.0
+): BufferedImage {
     // Create a new BufferedImage with a height of 1 and width equal to the number of bars
     val newImage = BufferedImage(imageWidth, 1, BufferedImage.TYPE_INT_ARGB)
 
@@ -29,7 +34,7 @@ fun drawVerticalBars(bars: Array<Bar>, imageWidth: Int, color:Int = 0x00000000, 
 }
 
 //todo remove
-fun drawVerticalBarsThin(bars: Array<Bar>, imageWidth: Int, color:Int = 0x00000000): BufferedImage {
+fun drawVerticalBarsThin(bars: Array<Bar>, imageWidth: Int, color: Int = 0x00000000): BufferedImage {
     // Create a new BufferedImage with a height of 1 and width equal to the number of bars
     val newImage = BufferedImage(imageWidth, 1, BufferedImage.TYPE_INT_ARGB)
 

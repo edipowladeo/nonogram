@@ -2,7 +2,7 @@ package org.example.bufferedImageExtensions
 
 import java.awt.image.BufferedImage
 
-fun BufferedImage.crop(
+fun BufferedImage.cropXY(
     x1: Int, x2: Int,
     y1: Int, y2: Int
 ): BufferedImage {
@@ -17,4 +17,19 @@ fun BufferedImage.crop(
     require(width > 0 && height > 0) { "Crop area must be at least 1x1 pixels" }
 
     return getSubimage(left, top, width, height)
+}
+
+fun BufferedImage.cropHW(
+    left: Int, width: Int,
+    top: Int, height: Int
+): BufferedImage {
+    val l = left.coerceIn(0, this.width - 1)
+    val t = top.coerceIn(0, this.height - 1)
+    val w = width.coerceIn(0, this.width - left)
+    val h = height.coerceIn(0, this.height - top)
+
+    require(w > 0 && h > 0) { "Crop area must be at least 1x1 pixels" }
+
+    return getSubimage(l,t,w,h)
+
 }

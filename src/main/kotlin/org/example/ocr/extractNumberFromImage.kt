@@ -8,14 +8,14 @@ fun extractNumberFromImage(image: BufferedImage): Int? {
         setDatapath("/opt/homebrew/share/tessdata")
         //setDatapath("tessdata") // Path to tessdata folder
         setLanguage("eng")
-            //  setTessVariable("tessedit_char_whitelist", "0123456789")
+        //  setTessVariable("tessedit_char_whitelist", "0123456789")
     }
 
     return try {
         val result = tesseract.doOCR(image).trim()
         println("partial Result : [$result]")
         val number = result
-          //  .filter { it.isDigit() }
+            //  .filter { it.isDigit() }
             .toIntOrNull()
         if (number in 0..50) number else null
     } catch (e: Exception) {

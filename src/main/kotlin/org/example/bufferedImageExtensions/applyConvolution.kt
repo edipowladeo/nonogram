@@ -1,9 +1,11 @@
 package org.example.bufferedImageExtensions
 
+import org.example.DebugParams
 import java.awt.image.BufferedImage
 import kotlin.math.min
 
 fun BufferedImage.applyConvolution(kernel: Array<IntArray>): BufferedImage {
+    val kernelCenterPosition = if (DebugParams.FORCE_GLITCH) 1.0 else 0.5
     val threshold = 125
     val width = this.width
     val height = this.height
@@ -27,9 +29,9 @@ fun BufferedImage.applyConvolution(kernel: Array<IntArray>): BufferedImage {
 
             // Ensure that the result is within the valid RGB range
             val clampedSum = sum.coerceIn(0, 255)
-            val color = if (clampedSum > threshold) 0xFFFFFF else 0x000000
+            val color = if (clampedSum > threshold)  0x000000 else 0xFFFFFF
 
-            resultImage.setRGB(min(x+kernelWidth,width-1), min(y+kernelHeight,height-1), color)
+            resultImage.setRGB(min(x + (kernelWidth*kernelCenterPosition).toInt(), width - 1), min(y + (kernelHeight*kernelCenterPosition).toInt(), height - 1), color)
         }
     }
 
