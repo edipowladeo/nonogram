@@ -10,14 +10,17 @@ import javax.swing.*
 
 enum class CellState { WHITE, BLACK, X }
 
+var isDragging = false
+var currentActionState: CellState? = null
+
 class NonogramGUI(
-    private val rowClues: List<List<Int>>,
-    private val colClues: List<List<Int>>
+    private val rowClues: List<List<Int>>, private val colClues: List<List<Int>>
 ) : JFrame("Nonogram") {
 
     private val numRows = rowClues.size
     private val numCols = colClues.size
     private val grid = Array(numRows) { Array(numCols) { CellState.WHITE } }
+
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -36,8 +39,14 @@ class NonogramGUI(
             for (c in 0 until totalCols) {
                 val comp: JComponent = when {
                     r < clueRowHeight && c < clueColWidth -> JLabel() // top-left corner
-                    r < clueRowHeight && c >= clueColWidth -> clueLabel(colClues[c - clueColWidth], clueRowHeight - r - 1)
-                    r >= clueRowHeight && c < clueColWidth -> clueLabel(rowClues[r - clueRowHeight], clueColWidth - c - 1, vertical = false)
+                    r < clueRowHeight && c >= clueColWidth -> clueLabel(
+                        colClues[c - clueColWidth], clueRowHeight - r - 1
+                    )
+
+                    r >= clueRowHeight && c < clueColWidth -> clueLabel(
+                        rowClues[r - clueRowHeight], clueColWidth - c - 1, vertical = false
+                    )
+
                     else -> gameCell(r - clueRowHeight, c - clueColWidth)
                 }
                 comp.border = BorderFactory.createLineBorder(Color.GRAY)
@@ -84,8 +93,7 @@ fun main() {
             clues = loaded,
             width = loaded.columns.size,
             height = loaded.rows.size,
-            grid = Array(loaded.rows.size) { Array(loaded.columns.size) { Nonogram.NonogramCell.UNKNOWN } }
-        )
+            grid = Array(loaded.rows.size) { Array(loaded.columns.size) { Nonogram.NonogramCell.UNKNOWN } })
         val nonogramDrawer = NonogramDrawer()
         println(nonogramDrawer.drawNonogram(nonogram))
 
@@ -94,20 +102,57 @@ fun main() {
 }
 
 class NonogramCellButton(var state: CellState) : JButton() {
-
     init {
-        isFocusPainted = false
-        background = Color.WHITE
-        isOpaque = true
-        border = BorderFactory.createLineBorder(Color.GRAY)
-        addActionListener {
-            state = when (state) {
+        fun nextState(state: CellState): CellState {
+            return when (state) {
                 CellState.WHITE -> CellState.BLACK
                 CellState.BLACK -> CellState.X
                 CellState.X -> CellState.WHITE
             }
-            repaint()
         }
+
+        isFocusPainted = false
+        background = Color.WHITE
+        isOpaque = true
+        border = BorderFactory.createLineBorder(Color.GRAY)
+
+
+        addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(e: MouseEvent) {
+                isDragging = true
+                // Toggle to next state and remember it for dragging
+                state = nextState(state)
+                currentActionState = state
+                repaint()
+            }
+
+            override fun mouseReleased(e: MouseEvent) {
+                isDragging = false
+                currentActionState = null
+            }
+        })
+
+
+        addMouseListener(object : MouseAdapter() {
+            override fun mousePressed(e: MouseEvent) {
+                isDragging = true
+                state = nextState(state)
+                currentActionState = state
+                repaint()
+            }
+
+            override fun mouseReleased(e: MouseEvent) {
+                isDragging = false
+                currentActionState = null
+            }
+
+            override fun mouseEntered(e: MouseEvent) {
+                if (isDragging && currentActionState != null) {
+                    state = currentActionState!!
+                    repaint()
+                }
+            }
+        })
     }
 
     override fun paintComponent(g: Graphics) {
@@ -117,9 +162,11 @@ class NonogramCellButton(var state: CellState) : JButton() {
             CellState.BLACK -> {
                 background = Color.BLACK
             }
+
             CellState.WHITE -> {
                 background = Color.WHITE
             }
+
             CellState.X -> {
                 background = Color.LIGHT_GRAY
                 val g2 = g as Graphics2D
