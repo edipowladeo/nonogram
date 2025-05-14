@@ -1,11 +1,7 @@
-import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.decodeFromByteArray
-import org.example.Clues
-import org.example.Nonogram
-import org.example.NonogramDrawer
+import org.example.nonogram.Nonogram
+import org.example.nonogram.Nonogram.NonogramChangeListener
 import java.awt.*
 import java.awt.event.*
-import java.io.File
 import javax.swing.*
 
 enum class CellState { WHITE, BLACK, X }
@@ -14,26 +10,31 @@ var isDragging = false
 var currentActionState: CellState? = null
 
 class NonogramGUI(
-     private val rowClues: List<List<Int>>, private  val colClues: List<List<Int>>
-) : JFrame("Nonogram") {
+     private val nonogram: Nonogram
+) : JFrame("Nonogram"), NonogramChangeListener {
 
-    private val numRows = rowClues.size
-    private val numCols = colClues.size
+    private val numRows = nonogram.clues.rows.size
+    private val numCols = nonogram.clues.columns.size
     private val grid:Array<Array<NonogramCellButton?>> =  Array(numRows) { Array(numCols) { null } }
 
+
     fun setCellState(row: Int, col: Int, state: CellState) {
-        grid[row][col]?.state = state
-        grid[row][col]?.repaint()
+        //grid[row][col]?.state = state
+        //grid[row][col]?.repaint()
+
     }
 
     init {
+    nonogram.addListener(this)
         defaultCloseOperation = EXIT_ON_CLOSE
         layout = BorderLayout()
 
-        val totalRows = rowClues.maxOf { it.size } + numRows
-        val totalCols = colClues.maxOf { it.size } + numCols
-        val clueRowHeight = colClues.maxOf { it.size }
-        val clueColWidth = rowClues.maxOf { it.size }
+        val maxColClues = nonogram.clues.columns.maxOf { it.size }
+        val maxRowClues = nonogram.clues.rows.maxOf { it.size }
+        val totalRows = maxColClues + numRows
+        val totalCols = maxRowClues + numCols
+        val clueRowHeight = maxColClues
+        val clueColWidth = maxRowClues
 
         val panel = JPanel(GridLayout(totalRows, totalCols))
         panel.background = Color.WHITE
@@ -44,11 +45,11 @@ class NonogramGUI(
                 val comp: JComponent = when {
                     r < clueRowHeight && c < clueColWidth -> JLabel() // top-left corner
                     r < clueRowHeight && c >= clueColWidth -> clueLabel(
-                        colClues[c - clueColWidth], clueRowHeight - r - 1
+                        nonogram.clues.columns[c - clueColWidth], clueRowHeight - r - 1
                     )
 
                     r >= clueRowHeight && c < clueColWidth -> clueLabel(
-                        rowClues[r - clueRowHeight], clueColWidth - c - 1, vertical = false
+                        nonogram.clues.rows[r - clueRowHeight], clueColWidth - c - 1, vertical = false
                     )
 
                     else -> {
@@ -90,30 +91,24 @@ class NonogramGUI(
 
     }
 
+    override fun onCellUpdated(row: Int, col: Int, cell: Nonogram.NonogramCell) {
+        grid[row][col]?.state = cell.state.toGUIstate()
+        grid[row][col]?.repaint()
+    }
+
+    fun Nonogram.NonogramCellState.toGUIstate() = when
+        (this) {
+            Nonogram.NonogramCellState.EMPTY -> CellState.X
+            Nonogram.NonogramCellState.FILLED -> CellState.BLACK
+            Nonogram.NonogramCellState.UNKNOWN -> CellState.WHITE
+        }
+
 
 }
 
-fun main() {
-    SwingUtilities.invokeLater {
-        // You can load these from file or generate them programmatically
-        val loaded = Cbor.decodeFromByteArray<Clues>(File("clues.dat").readBytes())
-        println("loaded")
-        println(loaded)
-        //game.getGameCell(7,2,0.85).convertToGrayscale().toBlackAndWhite(128).also { ImageIO.write(it, "png", File("bw_4.png"))}
-        val nonogram = Nonogram(
-            clues = loaded,
-            width = loaded.columns.size,
-            height = loaded.rows.size,
-            grid = Array(loaded.rows.size) { Array(loaded.columns.size) { Nonogram.NonogramCell.UNKNOWN } })
-        val nonogramDrawer = NonogramDrawer()
-        println(nonogramDrawer.drawNonogram(nonogram))
 
-        val gui = NonogramGUI(colClues = loaded.columns, rowClues = loaded.columns)
-     //   gui.colClues.first() = listOf(1, 1, 1, 1, 1)
-        gui.setCellState(2,2, CellState.BLACK)
 
-    }
-}class NonogramCellButton(var state: CellState) : JButton() {
+class NonogramCellButton(var state: CellState) : JButton() {
     init {
         fun nextState(state: CellState): CellState {
             println("State: $state")

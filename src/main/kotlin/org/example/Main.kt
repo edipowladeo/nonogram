@@ -12,6 +12,7 @@ import org.example.DebugParams.DEBUG_REMOVE_OUTLIERS
 import org.example.GameImageParams.REDUCTION_DENSITY_THRESHOLD
 import org.example.arithmetic.removeOutliersFromArithmeticProgression
 import org.example.bufferedImageExtensions.*
+import org.example.nonogram.Nonogram
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import java.io.File
@@ -291,7 +292,7 @@ val columnClues =     game.getAllColumnClues()
         clues = loaded,
         width = game.width,
         height = game.height,
-        grid = Array(game.rows) { Array(game.columns) { Nonogram.NonogramCell.UNKNOWN } }
+        grid = Array(game.rows) { Array(game.columns) { Nonogram.NonogramCell(Nonogram.NonogramCellState.UNKNOWN )} }
     )
     val nonogramDrawer = NonogramDrawer()
     println(nonogramDrawer.drawNonogram(nonogram))
