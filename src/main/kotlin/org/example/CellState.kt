@@ -99,11 +99,10 @@ fun main() {
 
         NonogramGUI(colClues = loaded.columns, rowClues = loaded.columns)
     }
-}
-
-class NonogramCellButton(var state: CellState) : JButton() {
+}class NonogramCellButton(var state: CellState) : JButton() {
     init {
         fun nextState(state: CellState): CellState {
+            println("State: $state")
             return when (state) {
                 CellState.WHITE -> CellState.BLACK
                 CellState.BLACK -> CellState.X
@@ -116,26 +115,10 @@ class NonogramCellButton(var state: CellState) : JButton() {
         isOpaque = true
         border = BorderFactory.createLineBorder(Color.GRAY)
 
-
         addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {
                 isDragging = true
                 // Toggle to next state and remember it for dragging
-                state = nextState(state)
-                currentActionState = state
-                repaint()
-            }
-
-            override fun mouseReleased(e: MouseEvent) {
-                isDragging = false
-                currentActionState = null
-            }
-        })
-
-
-        addMouseListener(object : MouseAdapter() {
-            override fun mousePressed(e: MouseEvent) {
-                isDragging = true
                 state = nextState(state)
                 currentActionState = state
                 repaint()
@@ -180,3 +163,4 @@ class NonogramCellButton(var state: CellState) : JButton() {
         }
     }
 }
+
