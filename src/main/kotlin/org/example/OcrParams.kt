@@ -6,7 +6,7 @@ object OcrParams {
     /** characters will be scaled to this height in pixels before comparison,
      * keep low for performance
      */
-    const val COMPARISON_IMAGE_HEIGHT = 50.0
+    const val COMPARISON_IMAGE_HEIGHT = 20.0
 
     /** the character must be at least this thick compared to the image size
      *  its thinnest part to be considered a continuous character,
@@ -19,7 +19,7 @@ object OcrParams {
      * to avoid detection of grid lines as characters,
      * set this to 0.0 to disable this filter **/
     val MIN_EXPECTED_HEIGHT = if (DebugParams.FORCE_GLITCH) 0.00 else 0.25
-    const val MIN_EXPECTED_WIDTH = 0.15
+    const val MIN_EXPECTED_WIDTH = 0.125
 
     const val PADDING_PIXELS = 1 //todo check if this is needed
 

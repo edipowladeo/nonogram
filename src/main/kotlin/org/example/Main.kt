@@ -1,5 +1,9 @@
 package org.example
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 import org.example.DebugParams.DEBUG_BOUNDARIES
 import org.example.DebugParams.DEBUG_MASTER
 import org.example.DebugParams.DEBUG_VERTICAL_BARS
@@ -13,8 +17,10 @@ import javax.imageio.ImageIO
 import java.io.File
 
 
+@OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    val imageFile = File("src/main/devResources/10screenshot.jpeg")
+    //val imageFile = File("src/main/devResources/30screenshot.jpeg")
+    val imageFile = File("src/main/devResources/40.jpeg")
 
     val originalImage: BufferedImage = ImageIO.read(imageFile)
     val width = originalImage.width
@@ -270,10 +276,23 @@ fun main() {
 
 
 
-    game.getAllColumnClues()
-
+val columnClues =     game.getAllColumnClues()
+    val rowClues =     game.getAllRowClues()
+    val clue = Clues(columnClues,rowClues)
+    val bytes = Cbor.encodeToByteArray(clue)
+    File("clues.dat").writeBytes(bytes)
     //game.getColumnClues(28)
 
-
+    val loaded = Cbor.decodeFromByteArray<Clues>(File("clues.dat").readBytes())
+    println("loaded")
+    println(loaded)
     //game.getGameCell(7,2,0.85).convertToGrayscale().toBlackAndWhite(128).also { ImageIO.write(it, "png", File("bw_4.png"))}
+    val nonogram = Nonogram(
+        clues = loaded,
+        width = game.width,
+        height = game.height,
+        grid = Array(game.rows) { Array(game.columns) { Nonogram.NonogramCell.UNKNOWN } }
+    )
+    val nonogramDrawer = NonogramDrawer()
+    println(nonogramDrawer.drawNonogram(nonogram))
 }

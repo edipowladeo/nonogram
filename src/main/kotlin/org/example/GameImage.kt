@@ -48,10 +48,13 @@ class GameImage(
 
     init {
         println("row clues: $rowClues, column clues: $columnClues")
-        require(verticalBarEnds.size == verticalBarStarts.size)
-        require(horizontalBarEnds.size == horizontalBarStarts.size)
+        if ((verticalBarEnds.size != verticalBarStarts.size) or (horizontalBarEnds.size != horizontalBarStarts.size))
+        {
+            Window(image, "GAME FAILED TO LOAD", x = 1200, y = 100, monitorIndex = 1)
+            throw Exception("Vertical and horizontal bar arrays must be of the same size")
+        }
 
-        Window(image, "GAME", x = 1200, y = 100, monitorIndex = 1)
+        Window(image.resize(.6), "GAME", x = 1200, y = 100, monitorIndex = 1)
     }
 
     fun BufferedImage.getGameCell(x: Int, y: Int, boundingBoxScale: Double = 1.0): BufferedImage {
@@ -84,17 +87,44 @@ class GameImage(
         val results = mutableListOf<Int>()
         for (clue in 0 until columnClues) {
             val image = getColumnClueFilteredImage(column, clue)
-            val result = ocr.interpretNumeral(image) ?: break
+            val result = ocr.interpretNumerals(image) ?: break
             results.add(result)
         }
-        return results
+        return results.reversed()
     }
 
-    fun getAllColumnClues(): List<List<Int?>> {
+    fun getAllColumnClues(): List<List<Int>> {
         return (0 until columns).map { column ->
             getColumnClues(column).also {
                 println("clues for column $column: ${it.joinToString(", ")}")
             }
         }
     }
+
+    fun getAllRowClues():  List<List<Int>> {
+        return (0 until rows).map { row ->
+            getRowClues(row).also {
+                println("clues for row $row: ${it.joinToString(", ")}")
+            }
+        }
+    }
+
+    private fun getRowClues(row: Int): List<Int> {
+        val results = mutableListOf<Int>()
+        for (clue in 0 until rowClues) {
+            val image = getRowClueFilteredImage(row, clue)
+            val result = ocr.interpretNumerals(image) ?: break
+            results.add(result)
+        }
+        return results.reversed()
+    }
+
+    private fun getRowClueFilteredImage(row: Int, cluePosition: Int): BufferedImage {
+    val y = columnClues + row
+        val x = rowClues - cluePosition - 1
+        require(y < height)
+        require(x >= 0)
+        return filteredImage.getGameCell(x, y, boundingBoxScale = GameImageParams.BOUNDING_BOX_SIZE)
+    }
+
 }

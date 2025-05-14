@@ -12,7 +12,7 @@ fun Array<Bar>.removeOutliersFromArithmeticProgression(
     if (debug) {
         val proofBars =
             drawVerticalBars(newArray, 3000).resize(height = 500)
-        Window(proofBars, "Debug Remove outliers: Size: ${this.size}", monitorIndex = 1)
+        Window(proofBars, "Debug Remove outliers: Size: ${this.size}", y = (50-this.size)*30,  monitorIndex = 1)
     }
     if (newArray.size < this.size) {
        if (debug) println("Removed outlier, new size: ${ newArray.size}")
@@ -34,6 +34,7 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Do
         }
     }
 
+
     val modeGap = gaps.calculateMode(1.5)
 
     val tolerance = modeGap * toleranceRatio
@@ -45,11 +46,20 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Do
 
     // Filter candidates beyond 10% deviation
     val outliers = deviations.filter { (_, dev) -> dev > tolerance }
+    val debug_detailed =  (this.size == 44)
 
+    if (debug_detailed) println("\tOutliers: $outliers")
+    if (debug_detailed){
+        println("Sorted Bars: ${sortedBars.map { it.center }}")
+        println("${this.size}\tGaps: $gaps")
+        println("\rGaps Sorted: ${gaps.sorted()}")
+        println("\tmedianGap: $modeGap, tolerance: $tolerance")
 
-    if (debug) println("\tOutliers: $outliers")
-
+        println("\tOutliers: $outliers")
+    }
     if (outliers.isEmpty()) return sortedBars.toTypedArray()
+
+
 
     val outlierToBeRemoved =  outliers.minBy {
         val indexToRemove = it.first
@@ -61,17 +71,40 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Do
                 else -> (newBars[i + 1].center - newBars[i - 1].center) / 2.0
             }
         }
-        val newModeGap = newGaps.calculateMode(1.5)
-        val newDeviations = newGaps.mapIndexed { i, gap ->
-            val diff = gap-newModeGap
-            val deviation =  if (diff >0) diff else -diff*5.0
-            Pair(i, deviation)
+        val newDeviations = List(newBars.size) { i ->
+                val leftSpacing = when (i) {
+                    0 -> 0.0
+                    else -> (newBars[i].center - newBars[i - 1].center)
+                }
+                val rightSpacing = when (i) {
+                    newBars.lastIndex -> 0.0
+                    else -> (newBars[i + 1].center - newBars[i].center)
+                }
+                val leftDeviation= leftSpacing-modeGap
+                val rightDeviation = rightSpacing-modeGap
+                val deviationLeftSq = (if (leftDeviation > 0) leftDeviation else -leftDeviation)
+                val deviationRightSq = (if (rightDeviation > 0) rightDeviation else -rightDeviation)
+            Pair(i, deviationLeftSq*deviationLeftSq + deviationRightSq*deviationRightSq) // todo Review this . TEst for this
+
+
+
+
         }
-        val averageDeviation = newDeviations.map { it.second }.average()
-        if (debug) println("Removing index: $indexToRemove, new average deviation: $averageDeviation")
-         averageDeviation
+        val newModeGap = newGaps.calculateMode(1.5)
+        val newDeviationsOld = newGaps.mapIndexed { i, gap ->
+            val diff = gap-newModeGap
+            val deviation =  if (diff >0) diff else -diff//*0.550
+            Pair(i, deviation*deviation)
+        }
+        val sqrDeviation = newDeviations.map { it.second }.sum()
+        if (debug_detailed) println("Removing index: $indexToRemove, new average deviation: $sqrDeviation")
+        sqrDeviation
     }
 
+    if (debug_detailed) {
+        println("\tOutlier to be removed: $outlierToBeRemoved")
+        println("\tOutlier to be removed index: ${outlierToBeRemoved.first}")
+    }
 
 
 
@@ -79,14 +112,7 @@ fun Array<Bar>.removeGreatestOutlierFromArithmeticProgression(toleranceRatio: Do
     // Remove the one with greatest deviation
     val indexToRemove = outlierToBeRemoved.first
 
-    if (debug){
-        println("${this.size}\tGaps: $gaps")
-        println("\rGaps Sorted: ${gaps.sorted()}")
-        println("\tmedianGap: $modeGap, tolerance: $tolerance")
 
-        println("\tOutliers: $outliers")
-        println("\tIndex to remove: $indexToRemove")
-    }
 
     return sortedBars.filterIndexed { i, _ -> i != indexToRemove }.toTypedArray()
 }
