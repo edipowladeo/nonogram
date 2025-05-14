@@ -22,8 +22,8 @@ import javax.swing.SwingUtilities
                 grid = Array(loaded.rows.size) { Array(loaded.columns.size) {
                     Nonogram.NonogramCell(Nonogram.NonogramCellState.UNKNOWN) }}
             )
-            val nonogramDrawer = NonogramDrawer()
-            println(nonogramDrawer.drawNonogram(nonogram))
+         //   val nonogramDrawer = NonogramDrawer()
+          //  println(nonogramDrawer.drawNonogram(nonogram))
 
             val gui = NonogramGUI(nonogram)
             //   gui.colClues.first() = listOf(1, 1, 1, 1, 1)
