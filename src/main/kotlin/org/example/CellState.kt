@@ -14,13 +14,17 @@ var isDragging = false
 var currentActionState: CellState? = null
 
 class NonogramGUI(
-    private val rowClues: List<List<Int>>, private val colClues: List<List<Int>>
+     private val rowClues: List<List<Int>>, private  val colClues: List<List<Int>>
 ) : JFrame("Nonogram") {
 
     private val numRows = rowClues.size
     private val numCols = colClues.size
-    private val grid = Array(numRows) { Array(numCols) { CellState.WHITE } }
+    private val grid:Array<Array<NonogramCellButton?>> =  Array(numRows) { Array(numCols) { null } }
 
+    fun setCellState(row: Int, col: Int, state: CellState) {
+        grid[row][col]?.state = state
+        grid[row][col]?.repaint()
+    }
 
     init {
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -47,8 +51,15 @@ class NonogramGUI(
                         rowClues[r - clueRowHeight], clueColWidth - c - 1, vertical = false
                     )
 
-                    else -> gameCell(r - clueRowHeight, c - clueColWidth)
+                    else -> {
+                        val rowIndex = r - clueRowHeight
+                        val colIndex = c - clueColWidth
+                        val button = gameCell(rowIndex, colIndex)
+                        grid[rowIndex][colIndex] = button
+                        button
+                    }
                 }
+
                 comp.border = BorderFactory.createLineBorder(Color.GRAY)
                 panel.add(comp)
             }
@@ -74,7 +85,7 @@ class NonogramGUI(
         return label
     }
 
-    private fun gameCell(row: Int, col: Int): JButton {
+    private fun gameCell(row: Int, col: Int): NonogramCellButton {
         return NonogramCellButton(CellState.WHITE)
 
     }
@@ -97,7 +108,10 @@ fun main() {
         val nonogramDrawer = NonogramDrawer()
         println(nonogramDrawer.drawNonogram(nonogram))
 
-        NonogramGUI(colClues = loaded.columns, rowClues = loaded.columns)
+        val gui = NonogramGUI(colClues = loaded.columns, rowClues = loaded.columns)
+     //   gui.colClues.first() = listOf(1, 1, 1, 1, 1)
+        gui.setCellState(2,2, CellState.BLACK)
+
     }
 }class NonogramCellButton(var state: CellState) : JButton() {
     init {
