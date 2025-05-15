@@ -138,7 +138,7 @@ object LineSolver{
 
         val smallestAllowedPosition = (0 until line.length).firstOrNull{ p->
             !line.checkCollision(Bar(p, p + firstClue - 1))
-            }
+            }?: raise(Inconsistency("No empty space found for clue #1: $firstClue"))
 
 
         val solvedStates = states.map { Nonogram.NonogramCellState.FILLED }

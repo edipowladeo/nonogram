@@ -30,5 +30,6 @@ import javax.swing.SwingUtilities
             nonogram.updateCell(0, 1, Nonogram.NonogramCellState.FILLED)
 
             nonogram.solve()
+
         }
     }
