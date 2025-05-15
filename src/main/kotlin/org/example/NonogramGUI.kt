@@ -18,8 +18,12 @@ class NonogramGUI(
     override var currentActionState:  Nonogram.NonogramCellState? = null
 
     override fun onCellStateChanged(cell: NonogramCellButton, newState: Nonogram.NonogramCellState) {
-        TODO("Not yet implemented")
-        // todo notifly nonogram
+       println("Cell state changed: $newState")
+       nonogram.updateCell(cell.row, cell.col, newState)
+       nonogram.solve()
+
+      //  TODO("Not yet implemented")
+      //  // todo notifly nonogram
     }
 
 
@@ -94,7 +98,7 @@ class NonogramGUI(
             verticalAlignment = SwingConstants.CENTER
             background = GameImageParams.CLUE_CELL_BACKGROUND_COLOR
             isOpaque = true
-            font = Font("Monospaced", Font.BOLD, 20)
+            font = Font("Monospaced", Font.BOLD, 12)
         }
         if (index < clue.size) {
             label.text = clue[index].toString()
@@ -104,7 +108,7 @@ class NonogramGUI(
     }
 
     private fun gameCell(row: Int, col: Int): NonogramCellButton {
-return         NonogramCellButton(nonogram.grid[row][col].state, this)
+return         NonogramCellButton(nonogram.grid[row][col].state, this,row = row,col = col)
     }
 
     override fun onCellUpdated(row: Int, col: Int, state: Nonogram.NonogramCellState) {

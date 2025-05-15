@@ -1,5 +1,6 @@
 package org.example
 
+import arrow.core.raise.either
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import org.example.nonogram.Nonogram

@@ -1,5 +1,8 @@
 package org.example.nonogram
 
+import arrow.core.Either
+import arrow.core.raise.Raise
+import arrow.core.raise.either
 import org.example.Clues
 import org.example.nonogram.LineSolver.solveLine
 
@@ -13,6 +16,9 @@ class Nonogram(
     val grid: List<Array<NonogramCell>> = List(clues.rows.size) {
         Array(clues.columns.size) { NonogramCell(Nonogram.NonogramCellState.UNKNOWN) }
     }
+    val rowsToCheck: MutableSet<Int> = setOf<Int>().toMutableSet()
+    val columnsToCheck:  MutableSet<Int> = setOf<Int>().toMutableSet()
+
     val maxIterations = 1000
 
     interface NonogramChangeListener {
@@ -26,6 +32,11 @@ class Nonogram(
     }
 
     fun updateCell(row: Int, col: Int, state: NonogramCellState) {
+        doUpdateCell(row=row, col=col, state=state)
+        rowsToCheck.add(row)
+        columnsToCheck.add(col)
+    }
+    private fun doUpdateCell(row: Int, col: Int, state: NonogramCellState) {
         grid[row][col] = NonogramCell(state) // todo check for bounds
         listeners.forEach { it.onCellUpdated(row, col, state) }
     }
@@ -52,28 +63,25 @@ class Nonogram(
     fun reset() {
         for (row in grid.indices) {
             for (col in grid[row].indices) {
-                updateCell(row, col, NonogramCellState.UNKNOWN)
+                doUpdateCell(row, col, NonogramCellState.UNKNOWN)
             }
         }
+        rowsToCheck.clear()
+        columnsToCheck.clear()
     }
 
-    val rowsToCheck: MutableList<Int> = listOf<Int>().toMutableList()
-    val columnsToCheck: MutableList<Int> = listOf<Int>().toMutableList()
 
-    fun solve() {
-        //reset()
-        println("Solving")
-        println("columns: ${clues.columns.size}, rows: ${clues.rows.size}")
-        clues.columns.forEachIndexed { i, _ ->
-            columnsToCheck.add(i)
-        }
-        clues.rows.forEachIndexed { i, _ ->
-            rowsToCheck.add(i)
-        }
+
+    fun solve() = either {
+
+
+
         solveAllRows()
+
     }
 
-    fun solveAllRows() {
+
+    fun Raise<LineSolver.Inconsistency>.solveAllRows() {
         if (rowsToCheck.isEmpty()) return
         for (i in 0 until maxIterations) {
             if (rowsToCheck.isEmpty()) break
@@ -82,7 +90,7 @@ class Nonogram(
         solveAllColumns()
     }
 
-    fun solveAllColumns() {
+    fun Raise<LineSolver.Inconsistency>.solveAllColumns() {
         if (columnsToCheck.isEmpty()) return
         for (i in 0 until maxIterations) {
             if (columnsToCheck.isEmpty()) break
@@ -91,19 +99,23 @@ class Nonogram(
         solveAllRows()
     }
 
-    fun solveRow(row: Int) {
+    fun Raise<LineSolver.Inconsistency>.solveRow(row: Int) {
         rowsToCheck.remove(row)
         val rowLine = grid[row].map { it.state }
-        val solvedLine = solveLine(rowLine, clues.rows[row])
+        val debug = (row == 0)
+        val solvedLine = solveLine(rowLine, clues.rows[row], debug)
 
         for (column in 0 until width ) {
-            updateCell(row = row, col = column, solvedLine[column])
+            // todo add to columnsToCheck
+            doUpdateCell(row = row, col = column, solvedLine.states[column])
         }
 
         println("Solved Row #${row}")
     }
 
-    fun solveColumn(col: Int) {
+
+
+    fun Raise<LineSolver.Inconsistency>.solveColumn(col: Int) {
         columnsToCheck.remove(col)
         val columnLine = List(height) { row -> grid[row][col].state }
 
@@ -112,7 +124,8 @@ class Nonogram(
 
         // Write the solved column back into the grid
         for (row in 0 until height ) {
-            updateCell(row = row, col = col, solvedLine[row])
+            // todo add to rowsToCheck
+            doUpdateCell(row = row, col = col, solvedLine.states[row])
         }
 
         println("Solved Column #${col}")

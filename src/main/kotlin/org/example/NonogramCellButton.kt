@@ -17,7 +17,12 @@ interface CellInteractionHandler {
     fun onCellStateChanged(cell: NonogramCellButton, newState:  Nonogram.NonogramCellState)
 }
 
-class NonogramCellButton(var state:  Nonogram.NonogramCellState, val interactionHandler: CellInteractionHandler) : JButton() {
+class NonogramCellButton(
+    var state:  Nonogram.NonogramCellState,
+    val interactionHandler: CellInteractionHandler,
+    val row: Int,
+    val col: Int,
+) : JButton() {
     init {
         fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
             println("State: $state")
@@ -40,17 +45,20 @@ class NonogramCellButton(var state:  Nonogram.NonogramCellState, val interaction
                 state = nextState(state)
                 interactionHandler.currentActionState = state
                 repaint()
+                interactionHandler.onCellStateChanged(this@NonogramCellButton, state)
             }
 
             override fun mouseReleased(e: MouseEvent) {
                 interactionHandler.isDragging = false
                 interactionHandler. currentActionState = null
+
             }
 
             override fun mouseEntered(e: MouseEvent) {
                 if (interactionHandler.isDragging && interactionHandler.currentActionState != null) {
                     state = interactionHandler.currentActionState!!
                     repaint()
+                    interactionHandler.onCellStateChanged(this@NonogramCellButton, state)
                 }
             }
         })
