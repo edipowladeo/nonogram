@@ -1,16 +1,22 @@
 package org.example.nonogram
 
 import org.example.Clues
+import org.example.nonogram.LineSolver.solveLine
 
 class Nonogram(
     val clues: Clues,
-    val width: Int, //todo remove from constructor
-    val height: Int,
-    val grid: Array<Array<NonogramCell>>,  //todo check for bounds
 ) {
+    val width = clues.columns.size
+    val height = clues.rows.size
+    // todo grid is mutable
+    // list of Rows , each row is a array
+    val grid: List<Array<NonogramCell>> = List(clues.rows.size) {
+        Array(clues.columns.size) { NonogramCell(Nonogram.NonogramCellState.UNKNOWN) }
+    }
     val maxIterations = 1000
+
     interface NonogramChangeListener {
-        fun onCellUpdated(row: Int, col: Int, cell: NonogramCell)
+        fun onCellUpdated(row: Int, col: Int, state: NonogramCellState)
     }
 
     private val listeners = mutableListOf<NonogramChangeListener>()
@@ -19,9 +25,9 @@ class Nonogram(
         listeners += listener
     }
 
-    fun updateCell(row: Int, col: Int, cell: NonogramCell) {
-        grid[row][col] = cell // todo check for bounds
-        listeners.forEach { it.onCellUpdated(row, col, cell) }
+    fun updateCell(row: Int, col: Int, state: NonogramCellState) {
+        grid[row][col] = NonogramCell(state) // todo check for bounds
+        listeners.forEach { it.onCellUpdated(row, col, state) }
     }
 
     class NonogramCell(
@@ -30,9 +36,7 @@ class Nonogram(
 
 
     enum class NonogramCellState(i: Int) {
-        EMPTY(0),
-        FILLED(1),
-        UNKNOWN(-1);
+        EMPTY(0), FILLED(1), UNKNOWN(-1);
 
         companion object {
             fun fromInt(value: Int): NonogramCellState {
@@ -48,7 +52,7 @@ class Nonogram(
     fun reset() {
         for (row in grid.indices) {
             for (col in grid[row].indices) {
-               updateCell(row,col, NonogramCell(NonogramCellState.UNKNOWN))
+                updateCell(row, col, NonogramCellState.UNKNOWN)
             }
         }
     }
@@ -56,59 +60,66 @@ class Nonogram(
     val rowsToCheck: MutableList<Int> = listOf<Int>().toMutableList()
     val columnsToCheck: MutableList<Int> = listOf<Int>().toMutableList()
 
-    fun solve(){
+    fun solve() {
         reset()
         println("Solving")
-        clues.columns.forEachIndexed { i,_->
+        println("columns: ${clues.columns.size}, rows: ${clues.rows.size}")
+        clues.columns.forEachIndexed { i, _ ->
             columnsToCheck.add(i)
         }
-        clues.rows.forEachIndexed { i,_->
+        clues.rows.forEachIndexed { i, _ ->
             rowsToCheck.add(i)
         }
         solveAllRows()
     }
 
-    fun solveAllRows(){
+    fun solveAllRows() {
         if (rowsToCheck.isEmpty()) return
-        for ( i in 0 until maxIterations){
+        for (i in 0 until maxIterations) {
             if (rowsToCheck.isEmpty()) break
             solveRow(rowsToCheck.first())
         }
         solveAllColumns()
     }
-    fun  solveAllColumns(){
+
+    fun solveAllColumns() {
         if (columnsToCheck.isEmpty()) return
-        for ( i in 0 until maxIterations){
+        for (i in 0 until maxIterations) {
             if (columnsToCheck.isEmpty()) break
             solveColumn(columnsToCheck.first())
         }
         solveAllRows()
     }
 
-    fun solveRow(index:Int){
-        rowsToCheck.remove(index)
-        solveLine(grid[index])
-        println("Solved Row #${index}")
-    }
-    fun solveColumn(index: Int){
-        columnsToCheck.remove(index)
+    fun solveRow(row: Int) {
+        rowsToCheck.remove(row)
+        val rowLine = grid[row].map { it.state }
+        val solvedLine = solveLine(rowLine, clues.rows[row])
 
-        println("Solved Column #${index}")
-    }
+        for (column in 0 until width ) {
+            updateCell(row = row, col = column, solvedLine[column])
+        }
 
-    fun solveLine(cells:Array<NonogramCell>){
-    println("Solving Line ${printLine(cells)}")
+        println("Solved Row #${row}")
     }
 
-    fun printLine(cells: Array<NonogramCell>):String{
-        val sb = StringBuilder()
-            for (cell in cells) {
-                when (cell.state) {
-                    Nonogram.NonogramCellState.EMPTY -> sb.append(" ")
-                    Nonogram.NonogramCellState.FILLED -> sb.append("#")
-                    Nonogram.NonogramCellState.UNKNOWN -> sb.append("?")
-                }
-            }
-        return sb.toString()
+    fun solveColumn(col: Int) {
+        columnsToCheck.remove(col)
+        val columnLine = List(height) { row -> grid[row][col].state }
+
+        // Solve the extracted column
+        val solvedLine = solveLine(columnLine, clues.columns[col])
+
+        // Write the solved column back into the grid
+        for (row in 0 until height ) {
+            updateCell(row = row, col = col, solvedLine[row])
+        }
+
+        println("Solved Column #${col}")
     }
+
+
+
+
 }
+

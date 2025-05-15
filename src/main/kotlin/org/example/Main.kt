@@ -289,10 +289,7 @@ val columnClues =     game.getAllColumnClues()
     println(loaded)
     //game.getGameCell(7,2,0.85).convertToGrayscale().toBlackAndWhite(128).also { ImageIO.write(it, "png", File("bw_4.png"))}
     val nonogram = Nonogram(
-        clues = loaded,
-        width = game.width,
-        height = game.height,
-        grid = Array(game.rows) { Array(game.columns) { Nonogram.NonogramCell(Nonogram.NonogramCellState.UNKNOWN )} }
+        clues = loaded
     )
     val nonogramDrawer = NonogramDrawer()
     println(nonogramDrawer.drawNonogram(nonogram))
