@@ -25,7 +25,7 @@ class NonogramCellButton(
 ) : JButton() {
     init {
         fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
-            println("State: $state")
+            //println("State: $state")
             return when (state) {
                 Nonogram.NonogramCellState.UNKNOWN -> Nonogram.NonogramCellState.FILLED
                 Nonogram.NonogramCellState.FILLED -> Nonogram.NonogramCellState.EMPTY

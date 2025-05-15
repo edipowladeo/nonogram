@@ -18,7 +18,7 @@ class NonogramGUI(
     override var currentActionState:  Nonogram.NonogramCellState? = null
 
     override fun onCellStateChanged(cell: NonogramCellButton, newState: Nonogram.NonogramCellState) {
-       println("Cell state changed: $newState")
+      // println("Cell state changed: $newState")
        nonogram.updateCell(cell.row, cell.col, newState)
        nonogram.solve()
 
