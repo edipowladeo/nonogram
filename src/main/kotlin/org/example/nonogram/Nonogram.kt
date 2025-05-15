@@ -61,7 +61,7 @@ class Nonogram(
     val columnsToCheck: MutableList<Int> = listOf<Int>().toMutableList()
 
     fun solve() {
-        reset()
+        //reset()
         println("Solving")
         println("columns: ${clues.columns.size}, rows: ${clues.rows.size}")
         clues.columns.forEachIndexed { i, _ ->
@@ -117,9 +117,5 @@ class Nonogram(
 
         println("Solved Column #${col}")
     }
-
-
-
-
 }
 

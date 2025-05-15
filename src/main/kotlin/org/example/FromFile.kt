@@ -20,10 +20,13 @@ import javax.swing.SwingUtilities
          //   val nonogramDrawer = NonogramDrawer()
           //  println(nonogramDrawer.drawNonogram(nonogram))
 
+
+            nonogram.updateCell(0, 0, Nonogram.NonogramCellState.EMPTY)
+
             val gui = NonogramGUI(nonogram)
-            //   gui.colClues.first() = listOf(1, 1, 1, 1, 1)
-            //   gui.setCellState(2,2, CellState.BLACK)
-            nonogram.updateCell(2, 3, Nonogram.NonogramCellState.FILLED)
+
+
+            nonogram.updateCell(0, 1, Nonogram.NonogramCellState.FILLED)
 
             nonogram.solve()
         }

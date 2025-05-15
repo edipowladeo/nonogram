@@ -21,6 +21,6 @@ object LineSolver{
         val solvedStates = states.map { Nonogram.NonogramCellState.FILLED }
         println("Solving Line ${printLine(states)}, clues: $clues")
         println("Solved Line ${printLine(solvedStates)}")
-        return solvedStates
+        return states // solvedStates
     }
 }

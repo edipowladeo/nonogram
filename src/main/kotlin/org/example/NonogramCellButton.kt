@@ -1,7 +1,7 @@
 package org.example
 
-import CellState
 
+import org.example.nonogram.Nonogram
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics
@@ -13,18 +13,18 @@ import javax.swing.JButton
 
 interface CellInteractionHandler {
     var isDragging: Boolean
-    var currentActionState: CellState?
-    fun onCellStateChanged(cell: NonogramCellButton, newState: CellState)
+    var currentActionState: Nonogram.NonogramCellState?
+    fun onCellStateChanged(cell: NonogramCellButton, newState:  Nonogram.NonogramCellState)
 }
 
-class NonogramCellButton(var state: CellState, val interactionHandler: CellInteractionHandler) : JButton() {
+class NonogramCellButton(var state:  Nonogram.NonogramCellState, val interactionHandler: CellInteractionHandler) : JButton() {
     init {
-        fun nextState(state: CellState): CellState {
+        fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
             println("State: $state")
             return when (state) {
-                CellState.WHITE -> CellState.BLACK
-                CellState.BLACK -> CellState.X
-                CellState.X -> CellState.WHITE
+                Nonogram.NonogramCellState.UNKNOWN -> Nonogram.NonogramCellState.FILLED
+                Nonogram.NonogramCellState.FILLED -> Nonogram.NonogramCellState.EMPTY
+                Nonogram.NonogramCellState.EMPTY -> Nonogram.NonogramCellState.UNKNOWN
             }
         }
 
@@ -60,18 +60,18 @@ class NonogramCellButton(var state: CellState, val interactionHandler: CellInter
         super.paintComponent(g)
 
         when (state) {
-            CellState.BLACK -> {
+            Nonogram.NonogramCellState.FILLED -> {
                 background = Color.BLACK
             }
 
-            CellState.WHITE -> {
+            Nonogram.NonogramCellState.UNKNOWN -> {
                 background = Color.WHITE
             }
 
-            CellState.X -> {
-                background = Color.LIGHT_GRAY
+            Nonogram.NonogramCellState.EMPTY -> {
+                background = Color.WHITE
                 val g2 = g as Graphics2D
-                g2.color = Color.RED
+                g2.color = Color.GRAY
                 g2.stroke = BasicStroke(2f)
 
                 val margin = 0

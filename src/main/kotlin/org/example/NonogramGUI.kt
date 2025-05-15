@@ -1,31 +1,23 @@
 package org.example
 
-import CellState
 import org.example.nonogram.Nonogram
 import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.Container
+import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridLayout
-import javax.swing.BorderFactory
-import javax.swing.JComponent
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.SwingConstants
-
-import java.awt.*
-import java.awt.event.*
 import javax.swing.*
 
 class NonogramGUI(
-    nonogram: Nonogram
+   val nonogram: Nonogram
 ) : JFrame("Nonogram"), Nonogram.NonogramChangeListener, CellInteractionHandler  {
 
-    override var isDragging = false
-    override var currentActionState: CellState? = null
 
-    override fun onCellStateChanged(cell: NonogramCellButton, newState: CellState) {
+
+    override var isDragging = false
+    override var currentActionState:  Nonogram.NonogramCellState? = null
+
+    override fun onCellStateChanged(cell: NonogramCellButton, newState: Nonogram.NonogramCellState) {
         TODO("Not yet implemented")
         // todo notifly nonogram
     }
@@ -39,7 +31,7 @@ class NonogramGUI(
     private val grid: Array<Array<NonogramCellButton?>> = Array(numRows) { Array(numCols) { null } }
 
 
-    fun setCellState(row: Int, col: Int, state: CellState) {
+    fun setCellState(row: Int, col: Int, state: Nonogram.NonogramCellState) {
         //grid[row][col]?.state = state
         //grid[row][col]?.repaint()
 
@@ -58,7 +50,9 @@ class NonogramGUI(
         val clueColWidth = maxRowClues
 
         val panel = JPanel(GridLayout(totalRows, totalCols))
+
         panel.background = Color.WHITE
+
 
         // Fill grid with appropriate components
         for (r in 0 until totalRows) {
@@ -87,7 +81,8 @@ class NonogramGUI(
             }
         }
 
-        Container.add(panel, BorderLayout.CENTER)
+        add(panel, BorderLayout.CENTER)
+        panel.size = Dimension(800, 600)
         pack()
         setLocationRelativeTo(null)
         isVisible = true
@@ -97,32 +92,27 @@ class NonogramGUI(
         val label = JLabel().apply {
             horizontalAlignment = SwingConstants.CENTER
             verticalAlignment = SwingConstants.CENTER
-            background = Color(255, 255, 180) // light yellow
+            background = GameImageParams.CLUE_CELL_BACKGROUND_COLOR
             isOpaque = true
-            font = Font("Monospaced", Font.PLAIN, 12)
+            font = Font("Monospaced", Font.BOLD, 20)
         }
         if (index < clue.size) {
             label.text = clue[index].toString()
         }
+      //  preferredSize = java.awt.Dimension(10, 10) // Match game cell size
         return label
     }
 
     private fun gameCell(row: Int, col: Int): NonogramCellButton {
-        return NonogramCellButton(CellState.WHITE, interactionHandler = this)
-
+return         NonogramCellButton(nonogram.grid[row][col].state, this)
     }
 
     override fun onCellUpdated(row: Int, col: Int, state: Nonogram.NonogramCellState) {
-        grid[row][col]?.state = state.toGUIstate()
+        grid[row][col]?.state = state
         grid[row][col]?.repaint()
     }
 
-    fun Nonogram.NonogramCellState.toGUIstate() = when
-                                                          (this) {
-        Nonogram.NonogramCellState.EMPTY -> CellState.X
-        Nonogram.NonogramCellState.FILLED -> CellState.BLACK
-        Nonogram.NonogramCellState.UNKNOWN -> CellState.WHITE
-    }
+
 
 
 }
