@@ -141,13 +141,12 @@ object LineSolver{
 
 
         // Função auxiliar para tentar preencher a linha em uma direção
-        fun placeClues(inputLine: Line, fromLeft: Boolean): List<Bar> {
+        fun placeClues(inputLine: Line, fromLeft: Boolean): List<NonogramCellState> {
 
             val result = MutableList(inputLine.length) { NonogramCellState.UNKNOWN }
             var pos = if (fromLeft) 0 else inputLine.length - 1
             val step = if (fromLeft) 1 else -1
             val clueIterator = if (fromLeft) inputLine.clues.iterator() else inputLine.clues.asReversed().iterator()
-
 
             while (clueIterator.hasNext()) {
                 val clue = clueIterator.next()
