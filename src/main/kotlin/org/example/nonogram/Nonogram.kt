@@ -115,12 +115,12 @@ class Nonogram(
     fun Raise<LineSolver.Inconsistency>.solveRow(row: Int, debug: Boolean = false) {
         rowsToCheck.remove(row)
         val rowLine = grid[row].map { it.state }
-
+        val line = LineSolver.Line(rowLine, clues.rows[row])
        if (debug) {
-          println("Solving Row #${row}")
+          println("Solving Row #${row}:\t${line.print()}   Clues:${line.clues}")
         }
 
-        val line = LineSolver.Line(rowLine, clues.rows[row])
+
         val solvedLine = either { improveLine(line, debug) }.mapLeft {
           it.concatenateLeft("Failed to solve Row #$row")
         }.bind()
@@ -144,11 +144,12 @@ class Nonogram(
         columnsToCheck.remove(col)
         val columnLine = List(height) { row -> grid[row][col].state }
 
-        if (debug) {
-            println("Solving Column #${col}")
-        }
+
         // Solve the extracted column
         val line = LineSolver.Line(columnLine, clues.columns[col])
+        if (debug) {
+            println("Solving Column #${col}:\t${line.print()}   Clues:${line.clues}")
+        }
         val solvedLine = either { improveLine(line,debug) }.mapLeft {
             it.concatenateLeft("Failed to solve Column #$col")
         }.bind()

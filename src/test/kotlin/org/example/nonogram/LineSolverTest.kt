@@ -19,7 +19,7 @@ class LineSolverTest {
         val result = either {  improveLine(line, debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "__#__",
@@ -38,7 +38,7 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "_______",
@@ -57,7 +57,7 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "_X_###_",
@@ -76,7 +76,7 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "_##_X___#___",
@@ -96,7 +96,7 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "____X____X__###__",
@@ -116,7 +116,7 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "_##_X__###__X____",
@@ -135,7 +135,7 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "__________",
@@ -154,7 +154,26 @@ class LineSolverTest {
         val result = either {  improveLine(line,debug)}
 
         result.fold(
-            { fail("Expected result to be Right")},
+            { fail(it.reason)},
+            { line ->
+                assertEquals(
+                    "_###______",
+                    line.print()
+                )
+            }
+        )
+    }
+
+    @Test
+    fun `column 5`() {
+        val line = LineSolver.Line.fromString(
+            string = "_________________#____________",
+            clues = listOf(2, 2, 2, 1, 1, 3, 1, 1, 1, 3)
+        )
+        val result = either {  improveLine(line,debug)}
+
+        result.fold(
+            { fail(it.reason)},
             { line ->
                 assertEquals(
                     "_###______",

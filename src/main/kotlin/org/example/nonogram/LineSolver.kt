@@ -229,6 +229,11 @@ object LineSolver{
         val leftToRight = placeClues(line, true)
         val rightToLeft = placeClues(line, false)
 
+        if (debug) {
+            println("Original: \t${line.print()}, clues: ${line.clues}")
+            println("Left->Right: \t${leftToRight}")
+            println("Right->Left: \t${rightToLeft}")
+        }
         if (leftToRight.size != rightToLeft.size) {
             raise(Inconsistency.UnexpectedInconsistency("Inconsistent placement: ${line.clues}")) //TODO improve error message
         }
@@ -257,11 +262,6 @@ object LineSolver{
 
 
         if (debug) {
-            println("Original: \t${line.print()}, clues: ${line.clues}")
-            println("Left->Right: \t${leftToRight}")
-            println("Right->Left: \t${rightToLeft}")
-            //println("Left->Right: \t${Line(leftToRight, line.clues).print()}")
-            //println("Right->Left: \t${Line(rightToLeft).print()}")
             println("Improved: \t${Line(improvedStates.states).print()}")
         }
 
