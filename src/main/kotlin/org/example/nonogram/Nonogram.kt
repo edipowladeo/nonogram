@@ -117,7 +117,7 @@ class Nonogram(
         val rowLine = grid[row].map { it.state }
         val line = LineSolver.Line(rowLine, clues.rows[row])
        if (debug) {
-          println("Solving Row #${row}:\t${line.print()}   Clues:${line.clues}")
+          println("Solving Row #${row}:\t${line.printWithClues()}")
         }
 
 
@@ -148,7 +148,7 @@ class Nonogram(
         // Solve the extracted column
         val line = LineSolver.Line(columnLine, clues.columns[col])
         if (debug) {
-            println("Solving Column #${col}:\t${line.print()}   Clues:${line.clues}")
+            println("Solving Column #${col}:\t${line.printWithClues()}")
         }
         val solvedLine = either { improveLine(line,debug) }.mapLeft {
             it.concatenateLeft("Failed to solve Column #$col")

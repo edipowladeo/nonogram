@@ -148,6 +148,10 @@ object LineSolver{
             return sb.toString()
         }
 
+        fun printWithClues(): String {
+            return "${print()}  Clues: ${clues})}"
+        }
+
     }
 
 
@@ -218,7 +222,7 @@ object LineSolver{
                 if (!placed) {
                     raise(
                         Inconsistency.UnexpectedInconsistency(
-                            "Failed to place clue #${index + 1} = $clue when scanning, line: ${inputLine.print()}, clues: ${inputLine.clues}"
+                            "Failed to place clue #${index + 1} = $clue when scanning ${line.printWithClues()}"
                         )
                     )
                 }
