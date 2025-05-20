@@ -63,12 +63,15 @@ class NonogramGUI(
             for (c in 0 until totalCols) {
                 val comp: JComponent = when {
                     r < clueRowHeight && c < clueColWidth -> JLabel() // top-left corner
+
                     r < clueRowHeight && c >= clueColWidth -> clueLabel(
-                        nonogram.clues.columns[c - clueColWidth], clueRowHeight - r - 1
+                        clue = nonogram.clues.columns[c - clueColWidth],
+                        index = - clueRowHeight + r + nonogram.clues.columns[c - clueColWidth].size
                     )
 
                     r >= clueRowHeight && c < clueColWidth -> clueLabel(
-                        nonogram.clues.rows[r - clueRowHeight], clueColWidth - c - 1, vertical = false
+                        clue = nonogram.clues.rows[r - clueRowHeight],
+                        index = - clueColWidth + c + nonogram.clues.rows[r - clueRowHeight].size
                     )
 
                     else -> {
@@ -92,7 +95,7 @@ class NonogramGUI(
         isVisible = true
     }
 
-    private fun clueLabel(clue: List<Int>, index: Int, vertical: Boolean = true): JLabel {
+    private fun clueLabel(clue: List<Int>, index: Int): JLabel {
         val label = JLabel().apply {
             horizontalAlignment = SwingConstants.CENTER
             verticalAlignment = SwingConstants.CENTER
@@ -100,7 +103,7 @@ class NonogramGUI(
             isOpaque = true
             font = Font("Monospaced", Font.BOLD, 12)
         }
-        if (index < clue.size) {
+        if ((index < clue.size)&& (index >= 0)) {
             label.text = clue[index].toString()
         }
       //  preferredSize = java.awt.Dimension(10, 10) // Match game cell size

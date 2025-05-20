@@ -21,7 +21,8 @@ import java.io.File
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     //val imageFile = File("src/main/devResources/30screenshot.jpeg")
-    val imageFile = File("src/main/devResources/40.jpeg")
+    val filename = "10"
+    val imageFile = File("src/main/devResources/${filename}.jpeg")
 
     val originalImage: BufferedImage = ImageIO.read(imageFile)
     val width = originalImage.width
@@ -281,10 +282,11 @@ val columnClues =     game.getAllColumnClues()
     val rowClues =     game.getAllRowClues()
     val clue = Clues(columnClues,rowClues)
     val bytes = Cbor.encodeToByteArray(clue)
-    File("clues.dat").writeBytes(bytes)
+    val datFileName = "clues$filename.dat"
+    File(datFileName).writeBytes(bytes)
     //game.getColumnClues(28)
 
-    val loaded = Cbor.decodeFromByteArray<Clues>(File("clues.dat").readBytes())
+    val loaded = Cbor.decodeFromByteArray<Clues>(File(datFileName).readBytes())
     println("loaded")
     println(loaded)
     //game.getGameCell(7,2,0.85).convertToGrayscale().toBlackAndWhite(128).also { ImageIO.write(it, "png", File("bw_4.png"))}
