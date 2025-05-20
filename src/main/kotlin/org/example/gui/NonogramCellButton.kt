@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JButton
+import javax.swing.KeyStroke
 
 class NonogramCellButton(
     var state:  Nonogram.NonogramCellState,
@@ -17,16 +18,22 @@ class NonogramCellButton(
     val row: Int,
     val col: Int,
 ) : JButton() {
-    init {
-        fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
-            return when (state) {
-                Nonogram.NonogramCellState.UNKNOWN -> Nonogram.NonogramCellState.FILLED
-                Nonogram.NonogramCellState.FILLED -> Nonogram.NonogramCellState.EMPTY
-                Nonogram.NonogramCellState.EMPTY -> Nonogram.NonogramCellState.UNKNOWN
-            }
+
+    var previewState: Nonogram.NonogramCellState? = null
+
+     private fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
+        return when (state) {
+            Nonogram.NonogramCellState.UNKNOWN -> Nonogram.NonogramCellState.FILLED
+            Nonogram.NonogramCellState.FILLED -> Nonogram.NonogramCellState.EMPTY
+            Nonogram.NonogramCellState.EMPTY -> Nonogram.NonogramCellState.UNKNOWN
         }
+    }
+
+    init {
 
         isFocusPainted = false
+        isFocusable = false
+
         background = Color.WHITE
         isOpaque = true
         border = BorderFactory.createLineBorder(Color.GRAY)
@@ -57,14 +64,37 @@ class NonogramCellButton(
                     repaint()
                     interactionHandler.onCellStateChanged(this@NonogramCellButton, state)
                 }
+
+                if (!interactionHandler.isDragging) {
+                    previewState = calculatePreviewState()
+                    interactionHandler.hoveredCell = this@NonogramCellButton
+                    repaint()
+                }
             }
+
+            override fun mouseExited(e: MouseEvent?) {
+                previewState = null
+                interactionHandler.hoveredCell = null
+                repaint()
+            }
+
         })
+    }
+
+    fun calculatePreviewState(): Nonogram.NonogramCellState {
+        return when (interactionHandler.getInteractionMode()) {
+            CellInteractionHandler.InteractionMode.CYCLE -> nextState(state) // assuming a next() method
+            CellInteractionHandler.InteractionMode.SET_EMPTY -> Nonogram.NonogramCellState.EMPTY
+            CellInteractionHandler.InteractionMode.SET_UNKNOWN -> Nonogram.NonogramCellState.UNKNOWN
+            CellInteractionHandler.InteractionMode.SET_FILLED -> Nonogram.NonogramCellState.FILLED
+        }
     }
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
 
-        when (state) {
+        val stateToPaint = previewState?:state
+        when (stateToPaint) {
             Nonogram.NonogramCellState.FILLED -> {
                 background = Color.BLACK
             }

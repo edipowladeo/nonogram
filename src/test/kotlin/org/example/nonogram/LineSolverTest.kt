@@ -145,4 +145,22 @@ class LineSolverTest {
         )
     }
 
+    @Test
+    fun `When line has a filed point near the corner and a big clue exists`() {
+        val line = LineSolver.Line.fromString(
+            string = "_#________",
+            clues = listOf(4)
+        )
+        val result = either {  improveLine(line,debug)}
+
+        result.fold(
+            { fail("Expected result to be Right")},
+            { line ->
+                assertEquals(
+                    "_###______",
+                    line.print()
+                )
+            }
+        )
+    }
 }

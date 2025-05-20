@@ -7,6 +7,7 @@ interface CellInteractionHandler {
     var currentActionState: Nonogram.NonogramCellState?
     fun onCellStateChanged(cell: NonogramCellButton, newState:  Nonogram.NonogramCellState)
     fun getInteractionMode(): InteractionMode
+    var hoveredCell: NonogramCellButton? //todo this violates the purpose of interface
 
     enum class InteractionMode(val label: String) {
         CYCLE("Cycle"),

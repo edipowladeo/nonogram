@@ -30,8 +30,8 @@ class NonogramGUI(
 ) : JFrame("Nonogram"), Nonogram.NonogramChangeListener, CellInteractionHandler {
 
 
-
-    private var interactionMode = InteractionMode.CYCLE
+    override var hoveredCell:  NonogramCellButton? = null
+    private var interactionMode = InteractionMode.SET_EMPTY
 
 
     override var isDragging = false
@@ -120,6 +120,7 @@ class NonogramGUI(
             addActionListener {
                 nonogram.solve()
             }
+            isFocusable = false
         }
 
 // Interaction modes as radio buttons
@@ -135,6 +136,7 @@ class NonogramGUI(
                     interactionMode = mode
                 }
             }
+            button.isFocusable = false
             modeGroup.add(button)
             radioPanel.add(button)
             radioPanel.add(Box.createHorizontalStrut(10))
@@ -159,6 +161,7 @@ class NonogramGUI(
             add(Box.createHorizontalStrut(10))
         }
 
+
         add(bottomPanel, BorderLayout.SOUTH)
 
         fun registerInteractionModeShortcut(keyStroke: String, mode: InteractionMode) {
@@ -174,6 +177,10 @@ class NonogramGUI(
                             button.isSelected = (button.text == mode.label)
                         }
                     }
+                    hoveredCell?.let { cell ->
+                        cell.previewState = cell.calculatePreviewState()
+                        cell.repaint()
+                    }
                 }
             })
         }
@@ -181,8 +188,18 @@ class NonogramGUI(
 // Register shortcuts
         registerInteractionModeShortcut("pressed Z", InteractionMode.CYCLE)
         registerInteractionModeShortcut("pressed X", InteractionMode.SET_EMPTY)
-        registerInteractionModeShortcut("pressed C", InteractionMode.SET_UNKNOWN)
+        registerInteractionModeShortcut("pressed SPACE", InteractionMode.SET_UNKNOWN)
         registerInteractionModeShortcut("pressed V", InteractionMode.SET_FILLED)
+
+    val solveKey = "solveNonogram"
+
+    rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), solveKey)
+    rootPane.actionMap.put(solveKey, object : AbstractAction() {
+        override fun actionPerformed(e: java.awt.event.ActionEvent?) {
+            nonogram.solve()
+            println("Solve triggered via Enter key")
+        }
+    })
     }
 
     private fun clueLabel(clue: List<Int>, index: Int): JLabel {
@@ -208,8 +225,4 @@ return NonogramCellButton(nonogram.grid[row][col].state, this, row = row, col = 
         grid[row][col]?.state = state
         grid[row][col]?.repaint()
     }
-
-
-
-
 }

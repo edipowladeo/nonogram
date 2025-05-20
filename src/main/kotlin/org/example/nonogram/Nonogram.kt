@@ -43,8 +43,8 @@ class Nonogram(
     private fun doUpdateCell(row: Int, col: Int, state: NonogramCellState) {
         grid[row][col] = NonogramCell(state) // todo check for bounds
         listeners.forEach { it.onCellUpdated(row, col, state) }
-      //  rowsToCheck.add(row)
-      //  columnsToCheck.add(col)
+        //rowsToCheck.add(row)
+        //columnsToCheck.add(col)
     }
 
     class NonogramCell(
