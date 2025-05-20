@@ -22,7 +22,7 @@ class NonogramCellButton(
     val interactionHandler: CellInteractionHandler,
     val row: Int,
     val col: Int,
-) : JButton() {
+) : JButton() { 
     init {
         fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
             //println("State: $state")
