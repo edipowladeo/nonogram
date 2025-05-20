@@ -20,7 +20,7 @@ class NonogramGUI(
     override fun onCellStateChanged(cell: NonogramCellButton, newState: Nonogram.NonogramCellState) {
       // println("Cell state changed: $newState")
        nonogram.updateCell(cell.row, cell.col, newState)
-       nonogram.solve()
+//       nonogram.solve()
 
       //  TODO("Not yet implemented")
       //  // todo notifly nonogram

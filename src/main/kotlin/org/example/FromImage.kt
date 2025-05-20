@@ -20,8 +20,8 @@ import java.io.File
 
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
-    //val imageFile = File("src/main/devResources/30screenshot.jpeg")
-    val filename = "10"
+    //val imageFile = File("src/main/devResources/30.jpeg")
+    val filename = "30"
     val imageFile = File("src/main/devResources/${filename}.jpeg")
 
     val originalImage: BufferedImage = ImageIO.read(imageFile)

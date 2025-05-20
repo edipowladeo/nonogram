@@ -11,7 +11,7 @@ import javax.swing.SwingUtilities
     fun main() {
         SwingUtilities.invokeLater {
             // You can load these from file or generate them programmatically
-            val loaded = Cbor.decodeFromByteArray<Clues>(File("clues10.dat").readBytes())
+            val loaded = Cbor.decodeFromByteArray<Clues>(File("clues30.dat").readBytes())
             println("loaded")
             println(loaded)
             //game.getGameCell(7,2,0.85).convertToGrayscale().toBlackAndWhite(128).also { ImageIO.write(it, "png", File("bw_4.png"))}
