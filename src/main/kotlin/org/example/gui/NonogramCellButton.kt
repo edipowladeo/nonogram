@@ -11,22 +11,6 @@ import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JButton
 
-interface CellInteractionHandler {
-    var isDragging: Boolean
-    var currentActionState: Nonogram.NonogramCellState?
-    fun onCellStateChanged(cell: NonogramCellButton, newState:  Nonogram.NonogramCellState)
-    fun getInteractionMode(): InteractionMode
-
-    enum class InteractionMode(val label: String) {
-        CYCLE("Cycle"),
-        SET_EMPTY("X"),
-        SET_UNKNOWN("_"),
-        SET_FILLED("#");
-
-        override fun toString() = label
-    }
-}
-
 class NonogramCellButton(
     var state:  Nonogram.NonogramCellState,
     val interactionHandler: CellInteractionHandler,

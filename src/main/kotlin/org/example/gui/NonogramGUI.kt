@@ -2,6 +2,10 @@ package org.example.gui
 
 import org.example.GameImageParams
 import org.example.nonogram.Nonogram
+import org.example.gui.CellInteractionHandler.InteractionMode
+
+import javax.swing.AbstractAction
+
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -17,7 +21,9 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
+import javax.swing.KeyStroke
 import javax.swing.SwingConstants
+
 
 class NonogramGUI(
    val nonogram: Nonogram
@@ -25,7 +31,7 @@ class NonogramGUI(
 
 
 
-    private var interactionMode = CellInteractionHandler.InteractionMode.CYCLE
+    private var interactionMode = InteractionMode.CYCLE
 
 
     override var isDragging = false
@@ -37,12 +43,14 @@ class NonogramGUI(
 //       nonogram.solve()
 
       //  TODO("Not yet implemented")
-      //  // todo notifly nonogram
+      //  // todo notify nonogram
     }
 
-    override fun getInteractionMode(): CellInteractionHandler.InteractionMode {
+    override fun getInteractionMode(): InteractionMode {
         return interactionMode
     }
+
+
 
 
     private val numRows = nonogram.clues.rows.size
@@ -53,12 +61,7 @@ class NonogramGUI(
     private val grid: Array<Array<NonogramCellButton?>> = Array(numRows) { Array(numCols) { null } }
 
 
-    fun setCellState(row: Int, col: Int, state: Nonogram.NonogramCellState) {
-        //grid[row][col]?.state = state
-        //grid[row][col]?.repaint()
-
-    }
-
+//    val radioButtons: MutableList<Int> = emptyList().toMutableList()
     init {
         nonogram.addListener(this)
         defaultCloseOperation = EXIT_ON_CLOSE
@@ -125,7 +128,7 @@ class NonogramGUI(
             layout = BoxLayout(this, BoxLayout.X_AXIS)
         }
 
-        CellInteractionHandler.InteractionMode.entries.forEach { mode ->
+        InteractionMode.entries.forEach { mode ->
             val button = JRadioButton(mode.label).apply {
                 isSelected = (mode == interactionMode)
                 addActionListener {
@@ -157,6 +160,29 @@ class NonogramGUI(
         }
 
         add(bottomPanel, BorderLayout.SOUTH)
+
+        fun registerInteractionModeShortcut(keyStroke: String, mode: InteractionMode) {
+            val actionKey = "setMode_$mode"
+
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(keyStroke), actionKey)
+            rootPane.actionMap.put(actionKey, object : AbstractAction() {
+                override fun actionPerformed(e: java.awt.event.ActionEvent?) {
+                    interactionMode = mode
+                    println("Interaction mode set to: $mode")
+                    radioPanel.components.filter { it is JRadioButton }.forEach { button ->
+                        if (button is JRadioButton) {
+                            button.isSelected = (button.text == mode.label)
+                        }
+                    }
+                }
+            })
+        }
+
+// Register shortcuts
+        registerInteractionModeShortcut("pressed Z", InteractionMode.CYCLE)
+        registerInteractionModeShortcut("pressed X", InteractionMode.SET_EMPTY)
+        registerInteractionModeShortcut("pressed C", InteractionMode.SET_UNKNOWN)
+        registerInteractionModeShortcut("pressed V", InteractionMode.SET_FILLED)
     }
 
     private fun clueLabel(clue: List<Int>, index: Int): JLabel {
