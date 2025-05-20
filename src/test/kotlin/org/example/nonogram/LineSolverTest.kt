@@ -9,14 +9,14 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class LineSolverTest {
-
+    val debug  = true
     @Test
     fun `test improveLine with one simple clues greater than half a line`() {
         val line = LineSolver.Line.fromString(
             string = "_____",
             clues = listOf(3)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line, debug)}
 
         result.fold(
             { fail("Expected result to be Right")},
@@ -35,7 +35,7 @@ class LineSolverTest {
             string = "_______",
             clues = listOf(3)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line,debug)}
 
         result.fold(
             { fail("Expected result to be Right")},
@@ -54,7 +54,7 @@ class LineSolverTest {
             string = "_X_____",
             clues = listOf(4)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line,debug)}
 
         result.fold(
             { fail("Expected result to be Right")},
@@ -73,7 +73,7 @@ class LineSolverTest {
             string = "____X_______",
             clues = listOf(3,4)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line,debug)}
 
         result.fold(
             { fail("Expected result to be Right")},
@@ -93,7 +93,7 @@ class LineSolverTest {
             string = "____X____X_______",
             clues = listOf(3,5)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line,debug)}
 
         result.fold(
             { fail("Expected result to be Right")},
@@ -113,7 +113,7 @@ class LineSolverTest {
             string = "____X_______X____",
             clues = listOf(3,5)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line,debug)}
 
         result.fold(
             { fail("Expected result to be Right")},
@@ -132,7 +132,7 @@ class LineSolverTest {
             string = "__________",
             clues = listOf(2,3)
         )
-        val result = either {  improveLine(line)}
+        val result = either {  improveLine(line,debug)}
 
         result.fold(
             { fail("Expected result to be Right")},

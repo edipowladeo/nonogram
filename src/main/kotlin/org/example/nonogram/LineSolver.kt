@@ -3,6 +3,8 @@ package org.example.nonogram
 import arrow.core.raise.Raise
 import org.example.Clues
 import  org.example.nonogram.Nonogram.NonogramCellState
+import kotlin.math.max
+import kotlin.math.min
 
 
 object LineSolver{
@@ -10,9 +12,44 @@ object LineSolver{
         val length: Int = end - start + 1
     }
 
-    data class Inconsistency(
-        val reason: String
-    )
+    sealed class Inconsistency(
+        val reason: String,
+
+    ) {
+        class GameInconsistency(reason: String) : Inconsistency(reason)
+        class UnexpectedInconsistency(reason: String) : Inconsistency(reason)
+
+        fun concatenateLeft(text: String): Inconsistency {
+            return when (this) {
+                is GameInconsistency -> GameInconsistency("$text: $reason")
+                is UnexpectedInconsistency -> UnexpectedInconsistency("$text: $reason")
+            }
+        }
+    }
+
+    data class MutableLines(
+        private val _states: List<NonogramCellState>,
+    ){
+        private val mutableStates = _states.toMutableList()
+
+        val length = _states.size
+
+        val states: List<NonogramCellState>
+            get() = mutableStates.toList()
+
+        fun getState(i: Int): NonogramCellState {
+            if (i < 0 || i >= length) { return NonogramCellState.EMPTY }
+
+            return mutableStates[i]
+        }
+
+        fun setState(i: Int, state: NonogramCellState) {
+            if (i >= 0 && i < length) {
+                mutableStates[i] = state
+            }
+        }
+
+    }
 
 
     data class Line (
@@ -114,10 +151,15 @@ object LineSolver{
 
 
     fun Raise<Inconsistency>.solveLine(states: List<NonogramCellState>, clues: List<Int>, debug: Boolean = false):  Line {
-        val line = Line(states, clues)
+      /*  val line = Line(states, clues)
 
-        val firstClue = clues.firstOrNull() ?: raise( Inconsistency("No clues found"))
-
+        val firstClue = clues.firstOrNull() ?: {
+         if (states.none { it == NonogramCellState.FILLED }) {
+                return line
+            } else {
+             raise(Inconsistency.GameInconsistency("line is not empty"))
+            }
+        }
         val smallestAllowedPosition = (0 until line.length).firstOrNull{ p->
             !line.checkCollision(Bar(p, p + firstClue - 1))
             }?: raise(Inconsistency("No empty space found for clue #1: $firstClue"))
@@ -134,20 +176,22 @@ object LineSolver{
             println("Smallest Allowed Position: $smallestAllowedPosition for clue $firstClue")
         }
 
-        return Line(states,clues) // solvedStates
+        return Line(states,clues) // solvedStates*/
+        TODO()
     }
 
     fun Raise<Inconsistency>.improveLine(line: Line, debug: Boolean = false): Line {
 
 
         // Função auxiliar para tentar preencher a linha em uma direção
-        fun placeClues(inputLine: Line, fromLeft: Boolean): List<NonogramCellState> {
+        fun placeClues(inputLine: Line, fromLeft: Boolean): List<Bar> {
 
             val result = MutableList(inputLine.length) { NonogramCellState.UNKNOWN }
             var pos = if (fromLeft) 0 else inputLine.length - 1
             val step = if (fromLeft) 1 else -1
             val clueIterator = if (fromLeft) inputLine.clues.iterator() else inputLine.clues.asReversed().iterator()
 
+            val resultBars = mutableListOf<Bar>()
             while (clueIterator.hasNext()) {
                 val clue = clueIterator.next()
                 var validPos = false
@@ -167,9 +211,9 @@ object LineSolver{
                             (after >= line.length || inputLine.getState(after) != NonogramCellState.FILLED)) {
                             validPos = true
                             // Preenche o bloco
-                            for (i in range) {
-                                result[i] = NonogramCellState.FILLED
-                            }
+
+
+                            resultBars.add(Bar(min(pos,end), max(pos,end)))
                             pos = if (fromLeft) end + 2 else end - 2
                             break
                         }
@@ -178,30 +222,50 @@ object LineSolver{
                 }
                 if (!validPos) break
             }
-            return result
+            return resultBars.sortedBy { it.start }
         }
 
         // Tenta resolver da esquerda para direita e da direita para esquerda
         val leftToRight = placeClues(line, true)
         val rightToLeft = placeClues(line, false)
 
-        // Combina os resultados - apenas mantém células que são iguais em ambas as direções
-        val improvedStates = (0 until line.length).map { i ->
-            when {
-
-                (leftToRight[i] == rightToLeft[i]) && (leftToRight[i] != NonogramCellState.UNKNOWN) -> leftToRight[i]
-                else -> line.getState(i)
-            }
+        if (leftToRight.size != rightToLeft.size) {
+            raise(Inconsistency.UnexpectedInconsistency("Inconsistent placement: ${line.clues}")) //TODO improve error message
         }
+
+        val improvedStates = MutableLines(line.states)
+
+        leftToRight.zip(rightToLeft){
+            leftBar, rightBar ->
+            if (leftBar.length != rightBar.length) {
+                raise(Inconsistency.UnexpectedInconsistency("Left to right and right to left returned different size bars")) //TODO improve error message
+            }
+            val intersectionBar = Bar(
+                start = maxOf(leftBar.start, rightBar.start),
+                end = minOf(leftBar.end, rightBar.end)
+            )
+            for (i in intersectionBar.start..intersectionBar.end) {
+                improvedStates.setState(i ,NonogramCellState.FILLED)
+            }
+
+            if (leftBar.start == rightBar.start){
+                improvedStates.setState(intersectionBar.start-1, NonogramCellState.EMPTY)
+                improvedStates.setState(intersectionBar.end+1, NonogramCellState.EMPTY)
+            }
+
+        }
+
 
         if (debug) {
-            println("Original: \t${line.print()}")
-            println("Left->Right: \t${Line(leftToRight, line.clues).print()}")
-            println("Right->Left: \t${Line(rightToLeft).print()}")
-            println("Improved: \t${Line(improvedStates).print()}")
+            println("Original: \t${line.print()}, clues: ${line.clues}")
+            println("Left->Right: \t${leftToRight}")
+            println("Right->Left: \t${rightToLeft}")
+            //println("Left->Right: \t${Line(leftToRight, line.clues).print()}")
+            //println("Right->Left: \t${Line(rightToLeft).print()}")
+            println("Improved: \t${Line(improvedStates.states).print()}")
         }
 
-        return Line(improvedStates, line.clues)
+        return Line(improvedStates.states, line.clues)
 
 
     }

@@ -42,6 +42,8 @@ class Nonogram(
     private fun doUpdateCell(row: Int, col: Int, state: NonogramCellState) {
         grid[row][col] = NonogramCell(state) // todo check for bounds
         listeners.forEach { it.onCellUpdated(row, col, state) }
+      //  rowsToCheck.add(row)
+      //  columnsToCheck.add(col)
     }
 
     class NonogramCell(
@@ -86,65 +88,82 @@ class Nonogram(
     }
 
 
-    fun solve() = either { solveAllRows() }.onLeft {
+    fun solve( ) = either { solveAllRows(debug = true) }.onLeft {
         println(it.reason)
     }
 
 
-    fun Raise<LineSolver.Inconsistency>.solveAllRows() {
+    fun Raise<LineSolver.Inconsistency>.solveAllRows(debug: Boolean =false ) {
         if (rowsToCheck.isEmpty()) return
         for (i in 0 until maxIterations) {
             if (rowsToCheck.isEmpty()) break
-            solveRow(rowsToCheck.first())
+            solveRow(rowsToCheck.first(),debug )
         }
-        solveAllColumns()
+        solveAllColumns(debug)
     }
 
-    fun Raise<LineSolver.Inconsistency>.solveAllColumns() {
+    fun Raise<LineSolver.Inconsistency>.solveAllColumns(debug: Boolean =false ) {
         if (columnsToCheck.isEmpty()) return
         for (i in 0 until maxIterations) {
             if (columnsToCheck.isEmpty()) break
-            solveColumn(columnsToCheck.first())
+            solveColumn(columnsToCheck.first(),debug)
         }
-        solveAllRows()
+        solveAllRows(debug)
     }
 
-    fun Raise<LineSolver.Inconsistency>.solveRow(row: Int) {
+    fun Raise<LineSolver.Inconsistency>.solveRow(row: Int, debug: Boolean = false) {
         rowsToCheck.remove(row)
         val rowLine = grid[row].map { it.state }
-        val debug = true
+
+       if (debug) {
+          println("Solving Row #${row}")
+        }
+
         val line = LineSolver.Line(rowLine, clues.rows[row])
         val solvedLine = either { improveLine(line, debug) }.mapLeft {
-            LineSolver.Inconsistency("Failed to solve Row #$row: ${it.reason}")
+          it.concatenateLeft("Failed to solve Row #$row")
         }.bind()
 
         for (column in 0 until width) {
+            val oldState = grid[row][column].state
+            val newState = solvedLine.getState(column)
+            if (oldState == newState) {
+                continue
+            }
             // todo add to columnsToCheck
             doUpdateCell(row = row, col = column, solvedLine.getState(column))
+            columnsToCheck.add(column)
         }
 
-        println("Solved Row #${row}")
+
     }
 
 
-    fun Raise<LineSolver.Inconsistency>.solveColumn(col: Int) {
+    fun Raise<LineSolver.Inconsistency>.solveColumn(col: Int, debug: Boolean =false ) {
         columnsToCheck.remove(col)
         val columnLine = List(height) { row -> grid[row][col].state }
 
-        val debug = true
+        if (debug) {
+            println("Solving Column #${col}")
+        }
         // Solve the extracted column
         val line = LineSolver.Line(columnLine, clues.columns[col])
         val solvedLine = either { improveLine(line,debug) }.mapLeft {
-            LineSolver.Inconsistency("Failed to solve Column #$col: ${it.reason}")
+            it.concatenateLeft("Failed to solve Column #$col")
         }.bind()
 
         // Write the solved column back into the grid
         for (row in 0 until height) {
+            val oldState = grid[row][col].state
+            val newState = solvedLine.getState(row)
+            if (oldState == newState) {
+                continue
+            }
+
             // todo add to rowsToCheck
             doUpdateCell(row = row, col = col, solvedLine.getState(row))
+            rowsToCheck.add(row)
         }
-
-        println("Solved Column #${col}")
     }
 }
 
