@@ -14,5 +14,9 @@ data class Bar(
             return Bar(center, width)
         }
     }
+
+    override fun toString(): String {
+        return "Bar(start=$start, end=$end, width=$width)"
+    }
 }
 

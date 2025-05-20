@@ -10,6 +10,9 @@ import kotlin.math.min
 object LineSolver{
     data class Bar(val start: Int, val end: Int){
         val length: Int = end - start + 1
+        override fun toString(): String {
+            return "Bar(start=$start, end=$end, length=$length)"
+        }
     }
 
     sealed class Inconsistency(
@@ -183,56 +186,68 @@ object LineSolver{
     fun Raise<Inconsistency>.improveLine(line: Line, debug: Boolean = false): Line {
 
 
-        // Função auxiliar para tentar preencher a linha em uma direção
-        fun placeClues(inputLine: Line, fromLeft: Boolean): List<Bar> {
-
-            val result = MutableList(inputLine.length) { NonogramCellState.UNKNOWN }
-            var pos = if (fromLeft) 0 else inputLine.length - 1
-            val step = if (fromLeft) 1 else -1
-            val clueIterator = if (fromLeft) inputLine.clues.iterator() else inputLine.clues.asReversed().iterator()
-
+        fun placeClues(inputLine: Line): List<Bar> {
             val resultBars = mutableListOf<Bar>()
-            while (clueIterator.hasNext()) {
-                val clue = clueIterator.next()
-                var validPos = false
+            var pos = 0
+            val step = 1
+            val clueList =  inputLine.clues
 
-                // Procura uma posição válida para o bloco atual
-                while (pos >= 0 && pos < line.length) {
+            for ((index, clue) in clueList.withIndex()) {
+                var placed = false
+                while (pos in 0 until inputLine.length) {
                     val end = pos + (clue - 1) * step
-                    if (end < 0 || end >= line.length) break
+                    if (end !in 0 until inputLine.length) break
 
-                    val range = if (fromLeft) pos..end else end..pos
-                    // Verifica se podemos colocar o bloco nesta posição
+                    val range = pos..end
                     if (range.none { inputLine.getState(it) == NonogramCellState.EMPTY }) {
-                        // Verifica se não viola regras de separação
-                        val before = if (fromLeft) pos - 1 else pos + 1
-                        val after = if (fromLeft) end + 1 else end - 1
-                        if ((before < 0 || inputLine.getState(before) != NonogramCellState.FILLED) &&
-                            (after >= line.length || inputLine.getState(after) != NonogramCellState.FILLED)) {
-                            validPos = true
-                            // Preenche o bloco
+                        val before =  pos - 1
+                        val after =  end + 1
+                        if ((before !in inputLine.states.indices || inputLine.getState(before) != NonogramCellState.FILLED) &&
+                            (after !in inputLine.states.indices || inputLine.getState(after) != NonogramCellState.FILLED)
+                        ) {
 
-
-                            resultBars.add(Bar(min(pos,end), max(pos,end)))
-                            pos = if (fromLeft) end + 2 else end - 2
+                            resultBars.add(Bar(min(pos, end), max(pos, end)))
+                            pos =  end + 2
+                            placed = true
                             break
                         }
                     }
                     pos += step
                 }
-                if (!validPos) break
+
+                if (!placed) {
+                    raise(
+                        Inconsistency.UnexpectedInconsistency(
+                            "Failed to place clue #${index + 1} = $clue when scanning, line: ${inputLine.print()}, clues: ${inputLine.clues}"
+                        )
+                    )
+                }
             }
             return resultBars.sortedBy { it.start }
         }
 
+        fun placeCluesReversed(inputLine: Line): List<Bar> {
+            val inputReversed = Line(inputLine.states.asReversed(), clues = inputLine.clues.asReversed())
+            val resultReversed = placeClues(inputReversed)
+            val lenght = inputLine.length
+            val result = resultReversed.map {
+                Bar(
+                    start = lenght - it.end - 1,
+                    end = lenght - it.start - 1
+                )
+            }
+            return result.sortedBy { it.start }
+        }
+
+
         // Tenta resolver da esquerda para direita e da direita para esquerda
-        val leftToRight = placeClues(line, true)
-        val rightToLeft = placeClues(line, false)
+        val leftToRight = placeClues(line)
+        val rightToLeft = placeCluesReversed(line)
 
         if (debug) {
             println("Original: \t${line.print()}, clues: ${line.clues}")
-            println("Left->Right: \t${leftToRight}")
-            println("Right->Left: \t${rightToLeft}")
+            println("Left->Right: Size:${leftToRight.size} \t${leftToRight}")
+            println("Right->Left: Size:${rightToLeft.size} \t${rightToLeft.joinToString()}")
         }
         if (leftToRight.size != rightToLeft.size) {
             raise(Inconsistency.UnexpectedInconsistency("Inconsistent placement: ${line.clues}")) //TODO improve error message

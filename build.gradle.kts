@@ -19,6 +19,8 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-cbor:1.6.0")
     implementation("io.arrow-kt:arrow-core:2.1.1") // latest version 14-05-2025
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+
 }
 
 tasks.test {
