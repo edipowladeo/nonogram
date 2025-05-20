@@ -1,4 +1,4 @@
-package org.example
+package org.example.gui
 
 
 import org.example.nonogram.Nonogram
@@ -15,6 +15,16 @@ interface CellInteractionHandler {
     var isDragging: Boolean
     var currentActionState: Nonogram.NonogramCellState?
     fun onCellStateChanged(cell: NonogramCellButton, newState:  Nonogram.NonogramCellState)
+    fun getInteractionMode(): InteractionMode
+
+    enum class InteractionMode(val label: String) {
+        CYCLE("Cycle"),
+        SET_EMPTY("X"),
+        SET_UNKNOWN("_"),
+        SET_FILLED("#");
+
+        override fun toString() = label
+    }
 }
 
 class NonogramCellButton(
@@ -22,10 +32,9 @@ class NonogramCellButton(
     val interactionHandler: CellInteractionHandler,
     val row: Int,
     val col: Int,
-) : JButton() { 
+) : JButton() {
     init {
         fun nextState(state:  Nonogram.NonogramCellState):  Nonogram.NonogramCellState {
-            //println("State: $state")
             return when (state) {
                 Nonogram.NonogramCellState.UNKNOWN -> Nonogram.NonogramCellState.FILLED
                 Nonogram.NonogramCellState.FILLED -> Nonogram.NonogramCellState.EMPTY
@@ -41,8 +50,12 @@ class NonogramCellButton(
         addMouseListener(object : MouseAdapter() {
             override fun mousePressed(e: MouseEvent) {
                 interactionHandler.isDragging = true
-                // Toggle to next state and remember it for dragging
-                state = nextState(state)
+                state = when (interactionHandler.getInteractionMode()){
+                    CellInteractionHandler.InteractionMode.CYCLE -> nextState(state)
+                    CellInteractionHandler.InteractionMode.SET_EMPTY -> Nonogram.NonogramCellState.EMPTY
+                    CellInteractionHandler.InteractionMode.SET_UNKNOWN -> Nonogram.NonogramCellState.UNKNOWN
+                    CellInteractionHandler.InteractionMode.SET_FILLED -> Nonogram.NonogramCellState.FILLED
+                }
                 interactionHandler.currentActionState = state
                 repaint()
                 interactionHandler.onCellStateChanged(this@NonogramCellButton, state)

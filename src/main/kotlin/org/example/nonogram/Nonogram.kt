@@ -27,6 +27,7 @@ class Nonogram(
         fun onCellUpdated(row: Int, col: Int, state: NonogramCellState)
     }
 
+
     private val listeners = mutableListOf<NonogramChangeListener>()
 
     fun addListener(listener: NonogramChangeListener) {

@@ -1,17 +1,31 @@
-package org.example
+package org.example.gui
 
+import org.example.GameImageParams
 import org.example.nonogram.Nonogram
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridLayout
-import javax.swing.*
+import javax.swing.BorderFactory
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.ButtonGroup
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JRadioButton
+import javax.swing.SwingConstants
 
 class NonogramGUI(
    val nonogram: Nonogram
-) : JFrame("Nonogram"), Nonogram.NonogramChangeListener, CellInteractionHandler  {
+) : JFrame("Nonogram"), Nonogram.NonogramChangeListener, CellInteractionHandler {
 
+
+
+    private var interactionMode = CellInteractionHandler.InteractionMode.CYCLE
 
 
     override var isDragging = false
@@ -24,6 +38,10 @@ class NonogramGUI(
 
       //  TODO("Not yet implemented")
       //  // todo notifly nonogram
+    }
+
+    override fun getInteractionMode(): CellInteractionHandler.InteractionMode {
+        return interactionMode
     }
 
 
@@ -93,6 +111,52 @@ class NonogramGUI(
         pack()
         setLocationRelativeTo(null)
         isVisible = true
+
+        // Solve button
+        val solveButton = JButton("Solve").apply {
+            addActionListener {
+                nonogram.solve()
+            }
+        }
+
+// Interaction modes as radio buttons
+        val modeGroup = ButtonGroup()
+        val radioPanel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.X_AXIS)
+        }
+
+        CellInteractionHandler.InteractionMode.entries.forEach { mode ->
+            val button = JRadioButton(mode.label).apply {
+                isSelected = (mode == interactionMode)
+                addActionListener {
+                    interactionMode = mode
+                }
+            }
+            modeGroup.add(button)
+            radioPanel.add(button)
+            radioPanel.add(Box.createHorizontalStrut(10))
+        }
+
+        val bottomPanel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.X_AXIS)
+            add(Box.createHorizontalStrut(10))
+            add(JLabel("Interaction mode:"))
+            add(Box.createHorizontalStrut(10))
+            add(radioPanel)
+            add(Box.createHorizontalStrut(10))
+
+            // Container to allow the solveButton to grow
+            val solveContainer = JPanel(BorderLayout()).apply {
+                minimumSize = Dimension(100, 30) // Minimum size
+                preferredSize = Dimension(150, 30)
+                add(solveButton, BorderLayout.CENTER)
+            }
+
+            add(solveContainer)
+            add(Box.createHorizontalStrut(10))
+        }
+
+        add(bottomPanel, BorderLayout.SOUTH)
     }
 
     private fun clueLabel(clue: List<Int>, index: Int): JLabel {
@@ -111,7 +175,7 @@ class NonogramGUI(
     }
 
     private fun gameCell(row: Int, col: Int): NonogramCellButton {
-return         NonogramCellButton(nonogram.grid[row][col].state, this,row = row,col = col)
+return NonogramCellButton(nonogram.grid[row][col].state, this, row = row, col = col)
     }
 
     override fun onCellUpdated(row: Int, col: Int, state: Nonogram.NonogramCellState) {
