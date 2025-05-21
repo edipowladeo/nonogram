@@ -250,4 +250,15 @@ class LineSolverTest {
         val expectedResult = "XXXXXXXXXX_#####_XXXXXXXXXXXXXXXXXXXX_________#_________"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `fill when bar size is determined`(direction: Direction) {
+        val clues = listOf(5,1,1,2,2)
+        val lineBeforeTest = "__#___X__#_________________________________"
+        val expectedResult = "_####_X_X#X________________________________"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+
 }

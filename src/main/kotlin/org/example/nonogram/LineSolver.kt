@@ -334,9 +334,11 @@ object LineSolver{
         }
 
         if (leftMostPositions.size != rightMostPositions.size) {
-            raise(Inconsistency.UnexpectedInconsistency("Inconsistent placement: ${line.clues}")) //TODO improve error message
+            raise(Inconsistency.UnexpectedInconsistency("leftMostPositions: ${leftMostPositions.size} != rightMostPositions ${rightMostPositions.size}  placement: ${line.clues}")) //TODO improve error message
         }
-
+        if (leftMostPositions.size != line.clues.size) {
+            raise(Inconsistency.UnexpectedInconsistency("lefmostpostions ${leftMostPositions.size} != clues.size ${line.clues.size}")) //TODO improve error message
+        }
 
         val improvedStates = MutableLines(line.states)
 
@@ -377,10 +379,28 @@ object LineSolver{
             }
         }
 
+        //fill intersections
         intersectionBars.forEach {   intersectionBar->
             for (i in intersectionBar.start..intersectionBar.end) {
             improvedStates.setState(i ,NonogramCellState.FILLED)
         }
+
+            //match islands
+            val improvedLine1 = Line(improvedStates.states, line.clues)
+            val existingBars = improvedLine1.getExistingBars()
+
+            existingBars.bars.forEach{ existingBar ->
+                val indexedClues = improvedLine1.clues.mapIndexed{i, clue -> Pair(i, clue)}
+                println(indexedClues)
+
+                val possibleClues = indexedClues.filter { (index, clue) ->
+                    val leftMost = leftMostPositions.bars[index]
+                    val rightMost = rightMostPositions.bars[index]
+                    clue >= existingBar.length &&
+                            existingBar.start >= leftMost.start && existingBar.end <= rightMost.end
+                }.map { it.first }
+                
+            }
 
         }
 
