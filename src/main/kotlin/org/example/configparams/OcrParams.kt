@@ -21,7 +21,8 @@ object OcrParams {
     val MIN_EXPECTED_HEIGHT = if (DebugParams.FORCE_GLITCH) 0.00 else 0.25
     const val MIN_EXPECTED_WIDTH = 0.125
 
-    const val PADDING_PIXELS = 1 //todo check if this is needed
+    const val PADDING_PIXELS_DIGIT = 1 //todo check if this is needed
+    const val PADDING_PIXELS_CELL = 0 //todo check if this is needed
 
 
 }

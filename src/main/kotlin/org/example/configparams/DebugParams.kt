@@ -2,9 +2,9 @@ package org.example.configparams
 
 object DebugParams {
     /** Debug mode, if true, will show debug windows for each step of the OCR process **/
-    const val DEBUG_MASTER = true
+    const val DEBUG_MASTER = false
 
-    const val DEBUG_BOUNDARIES = false
+    const val DEBUG_BOUNDARIES = true
 
     const val DEBUG_REMOVE_OUTLIERS = false
     const val FORCE_GLITCH = false

@@ -6,6 +6,7 @@ import org.example.configparams.DebugParams.DEBUG_NUMERAL_COMPARISONS_COLUMN_RAN
 import org.example.configparams.DebugParams.DEBUG_NUMERAL_COMPARISONS_ROW_RANGE
 import org.example.bufferedImageExtensions.*
 import org.example.configparams.GameImageParams
+import org.example.configparams.OcrParams.PADDING_PIXELS_CELL
 import org.example.ocr.NumeralOCR
 import java.awt.image.BufferedImage
 
@@ -64,10 +65,10 @@ class GameImage(
 
     fun BufferedImage.getGameCell(x: Int, y: Int, boundingBoxScale: Double = 1.0): BufferedImage {
 
-        val x1 = verticalBarEnds[x].toInt() + GameImageParams.CROP_X_OFFSET
-        val x2 = verticalBarStarts[x + 1].toInt() + GameImageParams.CROP_X_OFFSET
-        val y1 = horizontalBarEnds[y].toInt() + GameImageParams.CROP_Y_OFFSET
-        val y2 = horizontalBarStarts[y + 1].toInt() + GameImageParams.CROP_Y_OFFSET
+        val x1 = verticalBarEnds[x].toInt() + GameImageParams.CROP_X_OFFSET - PADDING_PIXELS_CELL
+        val x2 = verticalBarStarts[x + 1].toInt() + GameImageParams.CROP_X_OFFSET + PADDING_PIXELS_CELL
+        val y1 = horizontalBarEnds[y].toInt() + GameImageParams.CROP_Y_OFFSET - PADDING_PIXELS_CELL
+        val y2 = horizontalBarStarts[y + 1].toInt() + GameImageParams.CROP_Y_OFFSET + PADDING_PIXELS_CELL
 
         val xCenter = (x1 + x2) / 2
         val yCenter = (y1 + y2) / 2

@@ -65,12 +65,13 @@ class NumeralOCR {
             Window(image, "widths is empty", x = 1200, y = 100, monitorIndex = 1)
             return null
         }
+        val numCharacters = widths.size
         val numbers = widths.map {
             val croppedImage = image.cropXY(
-                x1 = (it.center - it.width / 2).toInt() - OcrParams.PADDING_PIXELS,
-                y1 = (height.center - height.width / 2).toInt() + 1 - OcrParams.PADDING_PIXELS,
-                x2 = (it.center + it.width / 2 ).toInt() + OcrParams.PADDING_PIXELS*2,
-                y2 = (height.center + height.width / 2).toInt() + 1 + OcrParams.PADDING_PIXELS*2
+                x1 = (it.center - it.width / 2).toInt() - OcrParams.PADDING_PIXELS_DIGIT,
+                y1 = (height.center - height.width / 2).toInt() + 1 - OcrParams.PADDING_PIXELS_DIGIT,
+                x2 = (it.center + it.width / 2 ).toInt() + OcrParams.PADDING_PIXELS_DIGIT,
+                y2 = (height.center + height.width / 2).toInt() + 1 + OcrParams.PADDING_PIXELS_DIGIT
             )
             val scaledImage = croppedImage.resize(OcrParams.COMPARISON_IMAGE_HEIGHT / height.width)
             if (debug) {
@@ -78,7 +79,8 @@ class NumeralOCR {
                 val x = Random.nextInt(770, 1350)
                 val scale = 450.0 / image.height
                 val bestDigit = interpretSingleNumeral(scaledImage)
-             //    Window(image.resize(scale), "OK! N: $bestDigit", x = x, y = y, monitorIndex = 0)
+
+                if (numCharacters > 1 ) Window(croppedImage.resize(scale), "OK! N: $bestDigit - SINGLE DIGIT", x = x, y = y, monitorIndex = 0)
 
                // Window(croppedImage.resize(scale), "OK! N: $bestDigit", x = x, y = y + 90, monitorIndex = 0)
                //  Window(croppedImage.resize(scale).toVerticalBars(), "OK! N: $bestDigit", x = x, y = y + 180, monitorIndex = 0)
