@@ -17,7 +17,16 @@ import kotlin.math.max
  * _________X_#####______________________________#_________
  *
  *
+ * constrain bar when its max size is determined
+ * ##X__#__________ Clues(2, 1, 1, 3) ->
+ * ##X_X#X_________
+ *
+ * constrain bar by one side when its start is determined (also backwards)
+ * ##X__#__________ Clues(2, 1, 3, 3) ->
+ * ##X_X#__________
  */
+
+
 object LineSolver{
 
     sealed class Inconsistency(

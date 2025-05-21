@@ -223,4 +223,15 @@ class LineSolverTest {
         val expectedResult = "____________###__"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `constrain bar by one side when its start is determined`(direction: Direction) {
+        val clues = listOf(2,1,3,3)
+        val lineBeforeTest = "##X__#__________"
+        val expectedResult = "##X_X#__________"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+
 }
