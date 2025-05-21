@@ -1,5 +1,9 @@
 package org.example
 
+import org.example.DebugParams.DEBUG_MASTER
+import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS
+import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS_COLUMN_RANGE
+import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS_ROW_RANGE
 import org.example.bufferedImageExtensions.*
 import org.example.ocr.NumeralOCR
 import java.awt.image.BufferedImage
@@ -85,9 +89,10 @@ class GameImage(
 
     private fun getColumnClues(column: Int): List<Int> {
         val results = mutableListOf<Int>()
+        val debug = (DEBUG_MASTER && DEBUG_NUMERAL_COMPARISONS && (column in DEBUG_NUMERAL_COMPARISONS_COLUMN_RANGE))
         for (clue in 0 until columnClues) {
             val image = getColumnClueFilteredImage(column, clue)
-            val result = ocr.interpretNumerals(image) ?: break
+            val result = ocr.interpretNumerals(image, debug) ?: break
             results.add(result)
         }
         return results.reversed()
@@ -111,9 +116,10 @@ class GameImage(
 
     private fun getRowClues(row: Int): List<Int> {
         val results = mutableListOf<Int>()
+        val debug = (DEBUG_MASTER && DEBUG_NUMERAL_COMPARISONS && (row in DEBUG_NUMERAL_COMPARISONS_ROW_RANGE))
         for (clue in 0 until rowClues) {
             val image = getRowClueFilteredImage(row, clue)
-            val result = ocr.interpretNumerals(image) ?: break
+            val result = ocr.interpretNumerals(image,debug) ?: break
             results.add(result)
         }
         return results.reversed()

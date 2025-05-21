@@ -31,7 +31,7 @@ class NonogramGUI(
 
 
     override var hoveredCell:  NonogramCellButton? = null
-    private var interactionMode = InteractionMode.SET_EMPTY
+    private var interactionMode = InteractionMode.CYCLE
 
 
     override var isDragging = false
@@ -104,7 +104,12 @@ class NonogramGUI(
                     }
                 }
 
-                comp.border = BorderFactory.createLineBorder(Color.GRAY)
+                val top = if ((r - clueRowHeight) % 5 == 0 && r >= clueRowHeight) 3 else 1
+                val left = if ((c - clueColWidth) % 5 == 0 && c >= clueColWidth) 3 else 1
+                val bottom = 1
+                val right = 1
+
+                comp.border = BorderFactory.createMatteBorder(top, left, bottom, right, Color.GRAY)
                 panel.add(comp)
             }
         }

@@ -21,7 +21,7 @@ import java.io.File
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     //val imageFile = File("src/main/devResources/30.jpeg")
-    val filename = "30"
+    val filename = "50"
     val imageFile = File("src/main/devResources/${filename}.jpeg")
 
     val originalImage: BufferedImage = ImageIO.read(imageFile)
@@ -62,22 +62,7 @@ fun main() {
 
 
     require(verticalbarStarts.size == verticalbarEnds.size) { "Vertical bars Starts and Ends sizes do not match: ${verticalbarStarts.size} != ${verticalbarEnds.size}" }
-    //require(horizontalbarStarts.size == horizontalbarEnds.size) { "Horizontal bars Starts and Ends sizes do not match: ${horizontalbarStarts.size} != ${horizontalbarEnds.size}" }
 
-  /*  val verticalBars = verticalbarStarts.zip(verticalbarEnds) { Starts, Ends ->
-        Bar(
-            center = (Starts.center + Ends.center) / 2,
-            width = (Starts.width + Ends.width) / 2,
-        )
-    }
-    val horizontalBars = horizontalbarStarts.zip(horizontalbarEnds) { Starts, Ends ->
-        Bar(
-            center = (Starts.center + Ends.center) / 2,
-            width = (Starts.width + Ends.width) / 2,
-        )
-    }
-
-   */
 
     val verticalProofBars = drawVerticalBars(verticalbarStarts, width, color = BLUE).resize(height = height)
 

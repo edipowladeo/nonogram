@@ -1,11 +1,14 @@
 package org.example.nonogram
 
 import arrow.core.raise.either
+import org.example.nonogram.LineSolver.anchorCluesLeft
 import org.junit.jupiter.api.Assertions.assertEquals
 
 import org.example.nonogram.LineSolver.improveLine
+import org.example.nonogram.LineSolver.placeCluesLeft
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import kotlin.test.Test
 import kotlin.test.fail
 
 class LineSolverTest {
@@ -111,12 +114,113 @@ class LineSolverTest {
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
 
+
     @ParameterizedTest
     @EnumSource(Direction::class)
     fun `column 5`(direction: Direction) {
         val clues = listOf(2, 2, 2, 1, 1, 3, 1, 1, 1, 3)
         val lineBeforeTest = "_________________#____________"
         val expectedResult = "_________________#____________"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+
+    @Test
+    fun `place Clues Left`() {
+        val clues = listOf(3, 4)
+        val lineBeforeTest = "__X_____X_______"
+        val expectedResult = IntBars(listOf(IntBar(start = 3, end = 5), IntBar(start = 9, end = 12)))
+        val line = LineSolver.Line.fromString(string = lineBeforeTest, clues = clues)
+        either { placeCluesLeft(line) }
+            .fold(
+                { fail(it.reason) },
+                { bars ->
+                    assertEquals(
+                        expectedResult,
+                        bars
+                    )
+                }
+            )
+    }
+
+    @Test
+    fun `anchor Clues Left`() {
+        val clues = listOf(4, 3, 4, 5)
+        val lineBeforeTest = "_________X_#_______#_#_"
+        val expectedResult = IntBars(
+            listOf(
+                IntBar(start = 0, end = 3),
+                IntBar(start = 0, end = 2),
+                IntBar(start = 10, end = 13),
+                IntBar(start = 17, end = 21)
+            )
+        )
+        val line = LineSolver.Line.fromString(string = lineBeforeTest, clues = clues)
+        either { anchorCluesLeft(line) }
+            .fold(
+                { fail(it.reason) },
+                { bars ->
+                    assertEquals(
+                        expectedResult.bars.sortedWith(IntBars.barComparator),
+                        bars.bars.sortedWith(IntBars.barComparator)
+                    )
+                }
+            )
+    }
+
+    @Test
+    fun `anchor Clues Left simplest`() {
+        val clues = listOf(5)
+        val lineBeforeTest = "______________#__"
+        val expectedResult = IntBars(
+            listOf(
+                IntBar(start = 10, end = 14)
+            )
+        )
+        val line = LineSolver.Line.fromString(string = lineBeforeTest, clues = clues)
+        either { anchorCluesLeft(line) }
+            .fold(
+                { fail(it.reason) },
+                { bars ->
+                    assertEquals(
+                        expectedResult,
+                        bars
+                    )
+                }
+            )
+    }
+
+    @Test
+    fun `anchor Clues Left 2 clues, zero anchors`() {
+        val clues = listOf(5,3)
+        val lineBeforeTest = "_______X____X____"
+        val expectedResult = IntBars(
+            listOf(
+                IntBar(start = 0, end = 4),
+                IntBar(start = 0, end = 2)
+
+            )
+        )
+        val line = LineSolver.Line.fromString(string = lineBeforeTest, clues = clues)
+        either { anchorCluesLeft(line) }
+            .fold(
+                { fail(it.reason) },
+                { bars ->
+                    assertEquals(
+                        expectedResult,
+                        bars
+                    )
+                }
+            )
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `test for anchors`(direction: Direction) {
+        val clues = listOf(5)
+        val lineBeforeTest = "______________#__"
+        val expectedResult = "____________###__"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
 }

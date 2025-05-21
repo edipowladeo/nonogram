@@ -57,7 +57,7 @@ class NumeralOCR {
         numeralWithCenterOfMass
     }
 
-    fun interpretNumerals(image: BufferedImage): Int? {
+    fun interpretNumerals(image: BufferedImage,debug: Boolean=false): Int? {
         val height = getNumberHeight(image)
             ?: return null //TODO WHO IS RESPONSIBLE FOR CHECK IF HE NUMBER IS BLANK? HEIGHT OR CENTER OF MASS?
         val widths = getNumberWidth(image)
@@ -74,7 +74,7 @@ class NumeralOCR {
                 y2 = (height.center + height.width / 2).toInt() + 3 + OcrParams.PADDING_PIXELS
             )
             val scaledImage = croppedImage.resize(OcrParams.COMPARISON_IMAGE_HEIGHT / height.width)
-            if (DEBUG_MASTER && DEBUG_NUMERAL_COMPARISONS) {
+            if (debug) {
                 val y = Random.nextInt(350, 700)
                 val x = Random.nextInt(770, 1350)
                 val scale = 450.0 / image.height
@@ -95,7 +95,7 @@ class NumeralOCR {
             interpretationResult
         }
 
-        if (DEBUG_MASTER && DEBUG_NUMERAL_COMPARISONS) {
+        if (debug) {
             val y = Random.nextInt(350, 700)
             val x = Random.nextInt(770, 1350)
             val scale = 450.0 / image.height

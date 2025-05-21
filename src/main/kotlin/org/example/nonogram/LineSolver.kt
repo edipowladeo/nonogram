@@ -1,19 +1,24 @@
 package org.example.nonogram
 
 import arrow.core.raise.Raise
-import org.example.Clues
 import  org.example.nonogram.Nonogram.NonogramCellState
 import kotlin.math.max
-import kotlin.math.min
 
-
+/** todos
+ * make all line empty when some bars are determined
+ * ____##_____ Clues(4) ->
+ * XX__##__XXX
+ *
+ * _____###________________###_______ Clues (4,4,2) ->
+ * XXXX_###_XXXXXXXXXXXXXX_###_______
+ *
+ * fill when minimum bar lenght is determined
+ * _________X_###________________________________#_________ Clues(6, 10) ->
+ * _________X_#####______________________________#_________
+ *
+ *
+ */
 object LineSolver{
-    data class Bar(val start: Int, val end: Int){
-        val length: Int = end - start + 1
-        override fun toString(): String {
-            return "Bar(start=$start, end=$end, length=$length)"
-        }
-    }
 
     sealed class Inconsistency(
         val reason: String,
@@ -60,8 +65,6 @@ object LineSolver{
         val clues: List<Int> = emptyList()){
         val length = _states.size
 
-        val bars = gtBars() //todo remove
-
         companion object{
            fun fromString(string: String, clues: List<Int> = emptyList()) : Line {
                 val states = string.map {
@@ -86,7 +89,7 @@ object LineSolver{
         val states: List<NonogramCellState>
             get() = _states
 
-        fun checkCollision(bar: Bar): Boolean {
+        fun checkCollision(bar: IntBar): Boolean {
             for (i in bar.start..bar.end) {
                 if (getState(i) == NonogramCellState.EMPTY) {
                     return true
@@ -104,8 +107,8 @@ object LineSolver{
 
 
 
-        fun gtBars(): List<Bar> {
-            val bars = mutableListOf<Bar>()
+        fun getExistingBars(): IntBars {
+            val bars = mutableListOf<IntBar>()
             var start = -1
             for (i in _states.indices) {
                 if (_states[i] == NonogramCellState.FILLED) {
@@ -114,28 +117,18 @@ object LineSolver{
                     }
                 } else {
                     if (start != -1) {
-                        bars.add(Bar(start, i - 1))
+                        bars.add(IntBar(start, i - 1))
                         start = -1
                     }
                 }
             }
             if (start != -1) {
-                bars.add(Bar(start, length - 1))
+                bars.add(IntBar(start, length - 1))
             }
-            return bars
+            return IntBars(bars)
         }
 
-        fun checkBars(bars: List<Bar>, clues: List<Int>): Boolean {
-            if (bars.size != clues.size) {
-                return false
-            }
-            for (i in bars.indices) {
-                if (bars[i].length != clues[i]) {
-                    return false
-                }
-            }
-            return true
-        }
+
         fun print(): String {
             val sb = StringBuilder()
             for (state in _states) {
@@ -187,84 +180,187 @@ object LineSolver{
         TODO()
     }
 
-    fun Raise<Inconsistency>.improveLine(line: Line, debug: Boolean = false): Line {
+    /*** Try to place clues on its leftmost possible location
+     * Example: clues (3, 4)
+     * __X_____X_______ ->
+     * __X###__X####___
+     * */
+    fun Raise<Inconsistency>.placeCluesLeft(inputLine: Line): IntBars {
+        val resultBars = mutableListOf<IntBar>()
+        var start = 0
 
+        val clueList =  inputLine.clues
 
-        fun placeClues(inputLine: Line): List<Bar> {
-            val resultBars = mutableListOf<Bar>()
-            var pos = 0
-            val step = 1
-            val clueList =  inputLine.clues
+        for ((index, clue) in clueList.withIndex()) {
+            var placed = false
+            println("CLUES LEFT: start: $start, clue: $clue")
+            while (start < inputLine.length) {
+                val end = start + (clue - 1)
+                if (end !in 0 until inputLine.length) break
 
-            for ((index, clue) in clueList.withIndex()) {
-                var placed = false
-                while (pos in 0 until inputLine.length) {
-                    val end = pos + (clue - 1) * step
-                    if (end !in 0 until inputLine.length) break
+                val range = start..end
+                if (range.none { inputLine.getState(it) == NonogramCellState.EMPTY }) {
+                    val before =  start - 1
+                    val after =  end + 1
+                    if ((before !in inputLine.states.indices || inputLine.getState(before) != NonogramCellState.FILLED) &&
+                        (after !in inputLine.states.indices || inputLine.getState(after) != NonogramCellState.FILLED)
+                    ) {
 
-                    val range = pos..end
-                    if (range.none { inputLine.getState(it) == NonogramCellState.EMPTY }) {
-                        val before =  pos - 1
-                        val after =  end + 1
-                        if ((before !in inputLine.states.indices || inputLine.getState(before) != NonogramCellState.FILLED) &&
-                            (after !in inputLine.states.indices || inputLine.getState(after) != NonogramCellState.FILLED)
-                        ) {
-
-                            resultBars.add(Bar(min(pos, end), max(pos, end)))
-                            pos =  end + 2
-                            placed = true
-                            break
-                        }
+                        resultBars.add(IntBar(start, end))
+                        start =  end + 2
+                        placed = true
+                        break
                     }
-                    pos += step
                 }
-
-                if (!placed) {
-                    raise(
-                        Inconsistency.UnexpectedInconsistency(
-                            "Failed to place clue #${index + 1} = $clue when scanning ${line.printWithClues()}"
-                        )
-                    )
-                }
+                start += 1
             }
-            return resultBars.sortedBy { it.start }
-        }
 
-        fun placeCluesReversed(inputLine: Line): List<Bar> {
-            val inputReversed = Line(inputLine.states.asReversed(), clues = inputLine.clues.asReversed())
-            val resultReversed = placeClues(inputReversed)
-            val lenght = inputLine.length
-            val result = resultReversed.map {
-                Bar(
-                    start = lenght - it.end - 1,
-                    end = lenght - it.start - 1
+            if (!placed) {
+                raise(
+                    Inconsistency.UnexpectedInconsistency(
+                        "Failed to left place clue #${index} = $clue when scanning ${inputLine.printWithClues()}"
+                    )
                 )
             }
-            return result.sortedBy { it.start }
+        }
+        return IntBars(resultBars)
+    }
+
+    /*** Try to anchor clues on its leftmost possible location
+     * Example: clues (3, 4, 5)
+     * _________X_#_______#_#_ ->
+     * ###______X####___#####_
+     * */
+    fun  Raise<Inconsistency>.anchorCluesLeft(inputLine: Line): IntBars {
+        val reversedClueList =  inputLine.clues.reversed()
+        val resultBars = mutableListOf<IntBar>()
+        val existingBars = inputLine.getExistingBars()
+
+
+        val maxEnd = inputLine.length - 1
+        var lastBarStart = maxEnd + 2
+
+
+        for ((index, clue) in reversedClueList.withIndex()) {
+
+            val intersectBars = existingBars.bars.filter { it.end < (lastBarStart - 1) }
+            var placed = false
+
+
+
+            val minEnd = intersectBars.lastOrNull()?.end ?: (clue - 1)
+            val minStart = max(minEnd - (clue - 1),0)
+
+            val maxStart = maxEnd - (clue - 1)
+
+            println("ANCHOR LEFT: minEnd: ${minEnd}, minStart: ${minStart}, clue: $clue, maxEnd:$maxEnd maxStart: $maxStart")
+            if (maxStart < 0) {
+                raise(
+                    Inconsistency.GameInconsistency(
+                        "Failed to left anchor clue #${index} = $clue, maxStart < 0 when scanning ${inputLine.printWithClues()}"
+                    )
+                )
+            }
+
+            var start = minStart
+
+
+
+
+            while (start <= maxStart) {
+                val end = start + (clue - 1)
+                val range = start..end
+                if (range.none { inputLine.getState(it) == NonogramCellState.EMPTY }) {
+                    val before =  start - 1
+                    val after =  end + 1
+                    if ((before !in inputLine.states.indices || inputLine.getState(before) != NonogramCellState.FILLED) &&
+                        (after !in inputLine.states.indices || inputLine.getState(after) != NonogramCellState.FILLED)
+                    ) {
+                        println("ANCHOR LEFT: Placing clue #${index} = $clue anchor at $start")
+                        resultBars.add(IntBar(start, end))
+                      //  maxEnd = start - 2
+                        lastBarStart = start
+                        placed = true
+                        break
+                    }
+                }
+                start += 1
+            }
+
+            if (!placed) {
+//                throw Exception()
+                raise(
+                    Inconsistency.UnexpectedInconsistency(
+                        "Failed to left anchor clue #${index} = $clue when scanning ${inputLine.printWithClues()}"
+                    )
+                )
+            }
+        }
+        return IntBars(resultBars.reversed())
+    }
+
+
+    fun Raise<Inconsistency>.getLeftMostPositions(line: Line): IntBars{
+        val leftMostPositions = placeCluesLeft(line)
+        val leftAnchors = anchorCluesLeft(line)
+
+        if (leftMostPositions.size != leftAnchors.size){
+            raise(Inconsistency.UnexpectedInconsistency("clue placement and anchors returned different number of bars")) //TODO improve error message
         }
 
+        val actualLeftMostPositions = leftMostPositions.bars.zip(leftAnchors.bars) { leftMost, leftAnchor ->
+            if (leftMost.length != leftAnchor.length) {
+                raise(Inconsistency.UnexpectedInconsistency("clue placement and anchors returned different size bars")) //TODO improve error message
+            }
+            IntBar.fromStartAndLength(
+                start = maxOf(leftMost.start, leftAnchor.start),
+                length = leftMost.length
+            )
+        }
+        return IntBars(actualLeftMostPositions)
+    }
 
-        // Tenta resolver da esquerda para direita e da direita para esquerda
-        val leftToRight = placeClues(line)
-        val rightToLeft = placeCluesReversed(line)
+    fun Raise<Inconsistency>.getRightMostPositions(line: Line): IntBars{
+        val inputReversed = Line(line.states.asReversed(), clues = line.clues.asReversed())
+        val  resultReversed = getLeftMostPositions(inputReversed)
+        val length = line.length
+        val result = resultReversed.bars.map {
+            IntBar(
+                start = length - it.end - 1,
+                end = length - it.start - 1
+            )
+        }
+        return IntBars(result.reversed())
+
+    }
+
+    fun Raise<Inconsistency>.improveLine(line: Line, debug: Boolean = false): Line {
+
+        val leftMostPositions = getLeftMostPositions(line)
+        val rightMostPositions = getRightMostPositions(line)
+
 
         if (debug) {
             println("Original: \t${line.print()}, clues: ${line.clues}")
-            println("Left->Right: Size:${leftToRight.size} \t${leftToRight}")
-            println("Right->Left: Size:${rightToLeft.size} \t${rightToLeft.joinToString()}")
+            println("LeftPos:    \tSize:${leftMostPositions.size} \t${leftMostPositions}")
+            println("RightPos:   \tSize:${rightMostPositions.size} \t${rightMostPositions}")
         }
-        if (leftToRight.size != rightToLeft.size) {
+
+        if (leftMostPositions.size != rightMostPositions.size) {
             raise(Inconsistency.UnexpectedInconsistency("Inconsistent placement: ${line.clues}")) //TODO improve error message
         }
 
+
         val improvedStates = MutableLines(line.states)
 
-        leftToRight.zip(rightToLeft){
+
+
+        leftMostPositions.bars.zip(rightMostPositions.bars){
             leftBar, rightBar ->
             if (leftBar.length != rightBar.length) {
                 raise(Inconsistency.UnexpectedInconsistency("Left to right and right to left returned different size bars")) //TODO improve error message
             }
-            val intersectionBar = Bar(
+            val intersectionBar = IntBar(
                 start = maxOf(leftBar.start, rightBar.start),
                 end = minOf(leftBar.end, rightBar.end)
             )
@@ -276,7 +372,6 @@ object LineSolver{
                 improvedStates.setState(intersectionBar.start-1, NonogramCellState.EMPTY)
                 improvedStates.setState(intersectionBar.end+1, NonogramCellState.EMPTY)
             }
-
         }
 
 
