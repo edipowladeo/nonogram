@@ -4,20 +4,7 @@ import arrow.core.raise.Raise
 import  org.example.nonogram.Nonogram.NonogramCellState
 import kotlin.math.max
 
-/** todos
- * make all line empty when some bars are determined
- * ____##_____ Clues(4) ->
- * XX__##__XXX
- *
- * _____###________________###_______ Clues (4,4,2) ->
- * XXXX_###_XXXXXXXXXXXXXX_###_______
- *
- * fill when minimum bar lenght is determined
- * _________X_###________________________________#_________ Clues(6, 10) ->
- * _________X_#####______________________________#_________
- *
- *
- */
+
 object LineSolver{
 
     sealed class Inconsistency(
@@ -355,23 +342,46 @@ object LineSolver{
 
 
 
-        leftMostPositions.bars.zip(rightMostPositions.bars){
+       val intersectionBars =  leftMostPositions.bars.zip(rightMostPositions.bars){
             leftBar, rightBar ->
             if (leftBar.length != rightBar.length) {
                 raise(Inconsistency.UnexpectedInconsistency("Left to right and right to left returned different size bars")) //TODO improve error message
             }
-            val intersectionBar = IntBar(
+           val intersectionBar =  IntBar(
                 start = maxOf(leftBar.start, rightBar.start),
                 end = minOf(leftBar.end, rightBar.end)
             )
-            for (i in intersectionBar.start..intersectionBar.end) {
-                improvedStates.setState(i ,NonogramCellState.FILLED)
-            }
 
-            if (leftBar.start == rightBar.start){
-                improvedStates.setState(intersectionBar.start-1, NonogramCellState.EMPTY)
-                improvedStates.setState(intersectionBar.end+1, NonogramCellState.EMPTY)
+           if (leftBar.start == rightBar.start){
+               improvedStates.setState(intersectionBar.start-1, NonogramCellState.EMPTY)
+               improvedStates.setState(intersectionBar.end+1, NonogramCellState.EMPTY)
+           }
+           intersectionBar
+       }
+
+        for (i in 0 until leftMostPositions.bars.first().start) {
+            improvedStates.setState(i, NonogramCellState.EMPTY)
+        }
+
+        // 2. After last bar
+        for (i in rightMostPositions.bars.last().end + 1 until line.length) {
+            improvedStates.setState(i, NonogramCellState.EMPTY)
+        }
+
+        // 3. Between right end of bar N and left start of bar N+1
+        for (i in 0 until leftMostPositions.size - 1) {
+            val endOfPrev = rightMostPositions.bars[i].end
+            val startOfNext = leftMostPositions.bars[i + 1].start
+            for (j in endOfPrev + 1 until startOfNext) {
+                improvedStates.setState(j, NonogramCellState.EMPTY)
             }
+        }
+
+        intersectionBars.forEach {   intersectionBar->
+            for (i in intersectionBar.start..intersectionBar.end) {
+            improvedStates.setState(i ,NonogramCellState.FILLED)
+        }
+
         }
 
 
