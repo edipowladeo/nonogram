@@ -4,14 +4,15 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import org.example.DebugParams.DEBUG_BOUNDARIES
-import org.example.DebugParams.DEBUG_MASTER
-import org.example.DebugParams.DEBUG_VERTICAL_BARS
-import org.example.DebugParams.DEBUG_HORIZONTAL_BARS
-import org.example.DebugParams.DEBUG_REMOVE_OUTLIERS
-import org.example.GameImageParams.REDUCTION_DENSITY_THRESHOLD
+import org.example.configparams.DebugParams.DEBUG_BOUNDARIES
+import org.example.configparams.DebugParams.DEBUG_MASTER
+import org.example.configparams.DebugParams.DEBUG_VERTICAL_BARS
+import org.example.configparams.DebugParams.DEBUG_HORIZONTAL_BARS
+import org.example.configparams.DebugParams.DEBUG_REMOVE_OUTLIERS
+import org.example.configparams.GameImageParams.REDUCTION_DENSITY_THRESHOLD
 import org.example.arithmetic.removeOutliersFromArithmeticProgression
 import org.example.bufferedImageExtensions.*
+import org.example.gui.NonogramGUI
 import org.example.nonogram.Nonogram
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -211,7 +212,7 @@ fun main() {
 
         Window(resized, "Game Image", x = 800, y = 700, monitorIndex = 1)
         Window(resized.toGrayscale(), "Game Image", x = 1000, y = 600, monitorIndex = 1)
-        Window(resized.toGrayscale().toBlackAndWhite(REDUCTION_DENSITY_THRESHOLD), "Game Image", x = 1200, y = 500, monitorIndex = 1)
+        Window(resized.toGrayscale().toBlackAndWhite(0.5), "Game Image - meaningless", x = 1200, y = 500, monitorIndex = 1)
         Window(
             resized.toGrayscale().applyConvolution(sobelKernelVerticalStarts),
             "Game Image",
@@ -278,6 +279,9 @@ val columnClues =     game.getAllColumnClues()
     val nonogram = Nonogram(
         clues = loaded
     )
-    val nonogramDrawer = NonogramDrawer()
-    println(nonogramDrawer.drawNonogram(nonogram))
+
+    val gui = NonogramGUI(nonogram)
+
+    nonogram.forceCheck()
+    nonogram.solve()
 }

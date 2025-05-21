@@ -185,7 +185,7 @@ object LineSolver{
      * __X_____X_______ ->
      * __X###__X####___
      * */
-    fun Raise<Inconsistency>.placeCluesLeft(inputLine: Line): IntBars {
+    fun Raise<Inconsistency>.placeCluesLeft(inputLine: Line, debug: Boolean = false): IntBars {
         val resultBars = mutableListOf<IntBar>()
         var start = 0
 
@@ -193,7 +193,7 @@ object LineSolver{
 
         for ((index, clue) in clueList.withIndex()) {
             var placed = false
-            println("CLUES LEFT: start: $start, clue: $clue")
+            if (debug) println("CLUES LEFT: start: $start, clue: $clue")
             while (start < inputLine.length) {
                 val end = start + (clue - 1)
                 if (end !in 0 until inputLine.length) break
@@ -231,7 +231,7 @@ object LineSolver{
      * _________X_#_______#_#_ ->
      * ###______X####___#####_
      * */
-    fun  Raise<Inconsistency>.anchorCluesLeft(inputLine: Line): IntBars {
+    fun  Raise<Inconsistency>.anchorCluesLeft(inputLine: Line, debug: Boolean = false): IntBars {
         val reversedClueList =  inputLine.clues.reversed()
         val resultBars = mutableListOf<IntBar>()
         val existingBars = inputLine.getExistingBars()
@@ -253,7 +253,7 @@ object LineSolver{
 
             val maxStart = maxEnd - (clue - 1)
 
-            println("ANCHOR LEFT: minEnd: ${minEnd}, minStart: ${minStart}, clue: $clue, maxEnd:$maxEnd maxStart: $maxStart")
+          if (debug)  println("ANCHOR LEFT: minEnd: ${minEnd}, minStart: ${minStart}, clue: $clue, maxEnd:$maxEnd maxStart: $maxStart")
             if (maxStart < 0) {
                 raise(
                     Inconsistency.GameInconsistency(
@@ -276,7 +276,7 @@ object LineSolver{
                     if ((before !in inputLine.states.indices || inputLine.getState(before) != NonogramCellState.FILLED) &&
                         (after !in inputLine.states.indices || inputLine.getState(after) != NonogramCellState.FILLED)
                     ) {
-                        println("ANCHOR LEFT: Placing clue #${index} = $clue anchor at $start")
+                        if (debug)     println("ANCHOR LEFT: Placing clue #${index} = $clue anchor at $start")
                         resultBars.add(IntBar(start, end))
                       //  maxEnd = start - 2
                         lastBarStart = start

@@ -1,12 +1,13 @@
 package org.example.bufferedImageExtensions
 
-import org.example.DebugParams
+import org.example.configparams.DebugParams
+import org.example.configparams.GameImageParams.CONVOLUTION_THRESOLD
 import java.awt.image.BufferedImage
 import kotlin.math.min
 
 fun BufferedImage.applyConvolution(kernel: Array<IntArray>): BufferedImage {
     val kernelCenterPosition = if (DebugParams.FORCE_GLITCH) 1.0 else 0.5
-    val threshold = 125
+    val threshold = 255*CONVOLUTION_THRESOLD
     val width = this.width
     val height = this.height
     val resultImage = BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY)

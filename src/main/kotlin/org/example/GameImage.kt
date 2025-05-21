@@ -1,10 +1,11 @@
 package org.example
 
-import org.example.DebugParams.DEBUG_MASTER
-import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS
-import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS_COLUMN_RANGE
-import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS_ROW_RANGE
+import org.example.configparams.DebugParams.DEBUG_MASTER
+import org.example.configparams.DebugParams.DEBUG_NUMERAL_COMPARISONS
+import org.example.configparams.DebugParams.DEBUG_NUMERAL_COMPARISONS_COLUMN_RANGE
+import org.example.configparams.DebugParams.DEBUG_NUMERAL_COMPARISONS_ROW_RANGE
 import org.example.bufferedImageExtensions.*
+import org.example.configparams.GameImageParams
 import org.example.ocr.NumeralOCR
 import java.awt.image.BufferedImage
 

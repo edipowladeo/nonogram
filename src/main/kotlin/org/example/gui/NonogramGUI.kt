@@ -1,6 +1,6 @@
 package org.example.gui
 
-import org.example.GameImageParams
+import org.example.configparams.GameImageParams
 import org.example.nonogram.Nonogram
 import org.example.gui.CellInteractionHandler.InteractionMode
 

@@ -89,7 +89,7 @@ class Nonogram(
     }
 
 
-    fun solve( ) = either { solveAllRows(debug = true) }.onLeft {
+    fun solve( debug: Boolean = false) = either { solveAllRows(debug) }.onLeft {
         println(it.reason)
     }
 
@@ -132,8 +132,8 @@ class Nonogram(
                 continue
             }
             // todo add to columnsToCheck
-            doUpdateCell(row = row, col = column, solvedLine.getState(column))
-            columnsToCheck.add(column)
+            updateCell(row = row, col = column, solvedLine.getState(column))
+          //  columnsToCheck.add(column)
         }
 
 
@@ -163,8 +163,8 @@ class Nonogram(
             }
 
             // todo add to rowsToCheck
-            doUpdateCell(row = row, col = col, solvedLine.getState(row))
-            rowsToCheck.add(row)
+            updateCell(row = row, col = col, solvedLine.getState(row))
+      //      rowsToCheck.add(row)
         }
     }
 }

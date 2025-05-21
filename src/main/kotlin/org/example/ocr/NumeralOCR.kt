@@ -1,10 +1,9 @@
 package org.example.ocr
 
-import org.example.DebugParams.DEBUG_MASTER
-import org.example.DebugParams.DEBUG_NUMERALS
-import org.example.DebugParams.DEBUG_NUMERAL_COMPARISONS
-import org.example.OcrParams
-import org.example.OcrParams.MIN_DENSITY_THRESHOLD
+import org.example.configparams.DebugParams.DEBUG_MASTER
+import org.example.configparams.DebugParams.DEBUG_NUMERALS
+import org.example.configparams.OcrParams
+import org.example.configparams.OcrParams.MIN_DENSITY_THRESHOLD
 import org.example.Window
 import org.example.arithmetic.Bar
 import org.example.bufferedImageExtensions.*
@@ -43,7 +42,7 @@ class NumeralOCR {
             )
 
             Window(
-                originalImage.transpose().toVerticalBars().toBlackAndWhite(OcrParams.MIN_DENSITY_THRESHOLD),
+                originalImage.transpose().toVerticalBars().toBlackAndWhite(MIN_DENSITY_THRESHOLD),
                 "original numeral: $digit",
                 y = 50,
                 x = digit * 120
@@ -70,8 +69,8 @@ class NumeralOCR {
             val croppedImage = image.cropXY(
                 x1 = (it.center - it.width / 2).toInt() - OcrParams.PADDING_PIXELS,
                 y1 = (height.center - height.width / 2).toInt() + 1 - OcrParams.PADDING_PIXELS,
-                x2 = (it.center + it.width / 2 ).toInt() + OcrParams.PADDING_PIXELS,
-                y2 = (height.center + height.width / 2).toInt() + 3 + OcrParams.PADDING_PIXELS
+                x2 = (it.center + it.width / 2 ).toInt() + OcrParams.PADDING_PIXELS*2,
+                y2 = (height.center + height.width / 2).toInt() + 1 + OcrParams.PADDING_PIXELS*2
             )
             val scaledImage = croppedImage.resize(OcrParams.COMPARISON_IMAGE_HEIGHT / height.width)
             if (debug) {
@@ -141,7 +140,7 @@ return number
 
 
     private fun getNumberHeight(image: BufferedImage): Bar? {
-        val brightnessThresold = OcrParams.MIN_DENSITY_THRESHOLD // todo check if this is correct
+        val brightnessThresold = MIN_DENSITY_THRESHOLD // todo check if this is correct
         fun debugImages(title: String) {
             val desiredHeight = 400
             Window(
@@ -178,7 +177,7 @@ return number
     }
 
     private fun getNumberWidth(image: BufferedImage): List<Bar> {
-        val brightnessThresold = OcrParams.MIN_DENSITY_THRESHOLD // todo check if this is correct
+        val brightnessThresold = MIN_DENSITY_THRESHOLD // todo check if this is correct
         fun debugImages(title: String) {
             val desiredHeight = 400
             Window(

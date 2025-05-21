@@ -1,4 +1,4 @@
-package org.example
+package org.example.configparams
 
 import java.awt.Color
 
@@ -6,7 +6,7 @@ object OcrParams {
     /** characters will be scaled to this height in pixels before comparison,
      * keep low for performance
      */
-    const val COMPARISON_IMAGE_HEIGHT = 20.0
+    const val COMPARISON_IMAGE_HEIGHT = 30.0
 
     /** the character must be at least this thick compared to the image size
      *  its thinnest part to be considered a continuous character,
@@ -28,6 +28,7 @@ object OcrParams {
 
 object GameImageParams {
     const val REDUCTION_DENSITY_THRESHOLD = 0.70 //todo Rename
+    const val CONVOLUTION_THRESOLD = 0.70 //todo Rename
 
     /** Percentage of the image size that is considered a bounding box,
      * to avoid detection of grid lines as characters,
