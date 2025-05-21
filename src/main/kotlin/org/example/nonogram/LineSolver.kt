@@ -17,16 +17,7 @@ import kotlin.math.max
  * _________X_#####______________________________#_________
  *
  *
- * constrain bar when its max size is determined
- * ##X__#__________ Clues(2, 1, 1, 3) ->
- * ##X_X#X_________
- *
- * constrain bar by one side when its start is determined (also backwards)
- * ##X__#__________ Clues(2, 1, 3, 3) ->
- * ##X_X#__________
  */
-
-
 object LineSolver{
 
     sealed class Inconsistency(
@@ -356,31 +347,74 @@ object LineSolver{
         }
 
         if (leftMostPositions.size != rightMostPositions.size) {
-            raise(Inconsistency.UnexpectedInconsistency("Inconsistent placement: ${line.clues}")) //TODO improve error message
+            raise(Inconsistency.UnexpectedInconsistency("leftMostPositions: ${leftMostPositions.size} != rightMostPositions ${rightMostPositions.size}  placement: ${line.clues}")) //TODO improve error message
         }
-
+        if (leftMostPositions.size != line.clues.size) {
+            raise(Inconsistency.UnexpectedInconsistency("lefmostpostions ${leftMostPositions.size} != clues.size ${line.clues.size}")) //TODO improve error message
+        }
 
         val improvedStates = MutableLines(line.states)
 
 
 
-        leftMostPositions.bars.zip(rightMostPositions.bars){
+       val intersectionBars =  leftMostPositions.bars.zip(rightMostPositions.bars){
             leftBar, rightBar ->
             if (leftBar.length != rightBar.length) {
                 raise(Inconsistency.UnexpectedInconsistency("Left to right and right to left returned different size bars")) //TODO improve error message
             }
-            val intersectionBar = IntBar(
+           val intersectionBar =  IntBar(
                 start = maxOf(leftBar.start, rightBar.start),
                 end = minOf(leftBar.end, rightBar.end)
             )
+
+           if (leftBar.start == rightBar.start){
+               improvedStates.setState(intersectionBar.start-1, NonogramCellState.EMPTY)
+               improvedStates.setState(intersectionBar.end+1, NonogramCellState.EMPTY)
+           }
+           intersectionBar
+       }
+
+        for (i in 0 until leftMostPositions.bars.first().start) {
+            improvedStates.setState(i, NonogramCellState.EMPTY)
+        }
+
+        // 2. After last bar
+        for (i in rightMostPositions.bars.last().end + 1 until line.length) {
+            improvedStates.setState(i, NonogramCellState.EMPTY)
+        }
+
+        // 3. Between right end of bar N and left start of bar N+1
+        for (i in 0 until leftMostPositions.size - 1) {
+            val endOfPrev = rightMostPositions.bars[i].end
+            val startOfNext = leftMostPositions.bars[i + 1].start
+            for (j in endOfPrev + 1 until startOfNext) {
+                improvedStates.setState(j, NonogramCellState.EMPTY)
+            }
+        }
+
+        //fill intersections
+        intersectionBars.forEach {   intersectionBar->
             for (i in intersectionBar.start..intersectionBar.end) {
-                improvedStates.setState(i ,NonogramCellState.FILLED)
+            improvedStates.setState(i ,NonogramCellState.FILLED)
+        }
+
+            //match islands
+            val improvedLine1 = Line(improvedStates.states, line.clues)
+            val existingBars = improvedLine1.getExistingBars()
+
+            existingBars.bars.forEach{ existingBar ->
+                val indexedClues = improvedLine1.clues.mapIndexed{i, clue -> Pair(i, clue)}
+                println(indexedClues)
+
+                val possibleClues = indexedClues.filter { (index, clue) ->
+                    val leftMost = leftMostPositions.bars[index]
+                    val rightMost = rightMostPositions.bars[index]
+                    clue >= existingBar.length &&
+                            existingBar.start >= leftMost.start && existingBar.end <= rightMost.end
+                }.map { it.first }
+
             }
 
-            if (leftBar.start == rightBar.start){
-                improvedStates.setState(intersectionBar.start-1, NonogramCellState.EMPTY)
-                improvedStates.setState(intersectionBar.end+1, NonogramCellState.EMPTY)
-            }
         }
 
 

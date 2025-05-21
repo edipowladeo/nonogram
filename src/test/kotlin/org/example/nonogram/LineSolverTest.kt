@@ -64,7 +64,7 @@ class LineSolverTest {
     fun `test improveLine with one simple clues smaller than half of available space`(direction: Direction) {
         val clues = listOf(4)
         val lineBeforeTest = "_X_____"
-        val expectedResult = "_X_###_"
+        val expectedResult = "XX_###_"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
 
@@ -92,7 +92,7 @@ class LineSolverTest {
     fun `When 2 clues, but 3 spaces, and only middle one fits right clue`(direction: Direction) {
         val clues = listOf(3, 5)
         val lineBeforeTest = "____X_______X____"
-        val expectedResult = "_##_X__###__X____"
+        val expectedResult = "_##_X__###__XXXXX"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
 
@@ -110,7 +110,7 @@ class LineSolverTest {
     fun `When line has a filed point near the corner and a big clue exists`(direction: Direction) {
         val clues = listOf(4)
         val lineBeforeTest = "_#________"
-        val expectedResult = "_###______"
+        val expectedResult = "_###_XXXXX"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
 
@@ -220,7 +220,43 @@ class LineSolverTest {
     fun `test for anchors`(direction: Direction) {
         val clues = listOf(5)
         val lineBeforeTest = "______________#__"
-        val expectedResult = "____________###__"
+        val expectedResult = "XXXXXXXXXX__###__"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `make all line empty when some bars are determined`(direction: Direction) {
+        val clues = listOf(4)
+        val lineBeforeTest = "____##_____"
+        val expectedResult = "XX__##__XXX"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `make all line empty when some bars are determined2`(direction: Direction) {
+        val clues = listOf(4,4,2)
+        val lineBeforeTest = "_____###________________###_______"
+        val expectedResult = "XXXX_###_XXXXXXXXXXXXXX_###_______"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `fill when minimum bar lenght is determined`(direction: Direction) {
+        val clues = listOf(6,10)
+        val lineBeforeTest = "_________X_###________________________________#_________"
+        val expectedResult = "XXXXXXXXXX_#####_XXXXXXXXXXXXXXXXXXXX_________#_________"
+        assertDirection(lineBeforeTest, expectedResult, clues, direction)
+    }
+
+    @ParameterizedTest
+    @EnumSource(Direction::class)
+    fun `fill when bar size is determined`(direction: Direction) {
+        val clues = listOf(5,1,1,2,2)
+        val lineBeforeTest = "__#___X__#_________________________________"
+        val expectedResult = "_####_X_X#X________________________________"
         assertDirection(lineBeforeTest, expectedResult, clues, direction)
     }
 
